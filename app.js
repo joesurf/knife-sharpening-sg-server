@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import createError from 'http-errors';
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import indexRouter from './routes/index.js';
+import botspaceRouter from './routes/botspace.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -18,6 +20,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
+
+// Has to be placed before express.json()
+// Stripe needs the raw body instead of JSON
+app.use('/botspace', express.raw({ type: 'application/json' }), botspaceRouter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
