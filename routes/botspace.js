@@ -12,10 +12,10 @@ router.get('/', (req, res, next) => {
 
 router.post('/', express.raw({type: 'application/json'}),  (req, res, next) => { 
   let event;
-  if (endpointSecret) {
-    // Get the signature sent by Stripe
-    const signature = req.headers['stripe-signature'];
 
+  // Make sure this is a Stripe event
+  if (endpointSecret) {
+    const signature = req.headers['stripe-signature'];
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
@@ -30,8 +30,6 @@ router.post('/', express.raw({type: 'application/json'}),  (req, res, next) => {
 
   switch (event.type) {
     case 'checkout.session.completed':
-      // The customer has completed the checkout flow.
-      // You should create a new customer record in your database for them.
       console.log(`:moneybag: Checkout session completed: ${event.data.object.id}`);
       break;
   }
