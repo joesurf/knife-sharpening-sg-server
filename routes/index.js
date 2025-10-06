@@ -7,4 +7,10 @@ router.get('/', (req, res, next) => {
   res.render('index', { title: 'Express' });
 });
 
+/* Testing Route */
+router.get('/test', (req, res, next) => {
+  res.render('index', { title: 'Test' });
+  console.log('test');
+});
+
 export default router;
