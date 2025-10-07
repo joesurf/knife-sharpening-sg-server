@@ -1,5 +1,6 @@
 import express from 'express';
 import Stripe from 'stripe';
+import { stringifyAddressObject } from '../utils/utils.js';
 
 const router = express.Router();
 
@@ -30,7 +31,14 @@ router.post('/', express.raw({type: 'application/json'}),  (req, res, next) => {
 
   switch (event.type) {
     case 'checkout.session.completed':
-      console.log(`:moneybag: Checkout session completed: ${event.data.object.id}`);
+      const eventData = event.data.object;
+      const customerData = eventData.customer_details;
+      const customerPhone = customerData.phone;
+      const customerName = customerData.name;
+      const customerAddress = stringifyAddressObject(customerData.address);
+      console.log(`customerName: ${customerName}`);
+      console.log(`customerPhone: ${customerPhone}`);
+      console.log(`customerAddress: ${customerAddress}`);
       break;
   }
 
