@@ -37,6 +37,7 @@ router.post('/', express.raw({type: 'application/json'}),  (req, res, next) => {
       const customerPhone = customerData.phone;
       const customerName = customerData.name;
       const customerAddress = stringifyAddressObject(customerData.address);
+      const additionalInstructions = eventData.custom_fields.find((field) => field.key === 'additionalinstructions')?.text?.value || 'NA';
 
       console.log(`customerName: ${customerName}`);
       console.log(`customerPhone: ${customerPhone}`);
@@ -46,6 +47,7 @@ router.post('/', express.raw({type: 'application/json'}),  (req, res, next) => {
         name: customerName,
         phone: customerPhone,
         address: customerAddress,
+        note: additionalInstructions,
       };
 
       fetchBotspace(botspaceNewOrderWebhookUrl, botspaceBody);
