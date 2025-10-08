@@ -1,7 +1,10 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { stringifyAddressObject, fetchBotspace } from '../utils/utils.js';
-import { insertNotionCustomer } from '../utils/notion_helper.js';
+import {
+  insertNotionCustomer,
+  getOrderConstants,
+} from '../utils/notion_helper.js';
 
 const router = express.Router();
 
@@ -13,57 +16,76 @@ router.get('/', (req, res) => {
   res.render('index', { title: 'Stripe' });
 });
 
-router.post('/', express.raw({ type: 'application/json' }), (req, res) => {
-  let event;
+router.post(
+  '/',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    let event;
 
-  // Make sure this is a Stripe event
-  if (endpointSecret) {
-    const signature = req.headers['stripe-signature'];
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        signature,
-        endpointSecret,
-      );
-    } catch (err) {
-      console.log(
-        `:warning: Webhook signature verification failed.`,
-        err.message,
-      );
-      return res.sendStatus(400);
+    // Make sure this is a Stripe event
+    if (endpointSecret) {
+      const signature = req.headers['stripe-signature'];
+      try {
+        event = stripe.webhooks.constructEvent(
+          req.body,
+          signature,
+          endpointSecret,
+        );
+      } catch (err) {
+        console.log(
+          `:warning: Webhook signature verification failed.`,
+          err.message,
+        );
+        return res.sendStatus(400);
+      }
     }
-  }
 
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const eventData = event.data.object;
-      const customerData = eventData.customer_details;
-      const customerPhone = customerData.phone;
-      const customerName = customerData.name;
-      const customerAddress = stringifyAddressObject(customerData.address);
-      const additionalInstructions =
-        eventData.custom_fields.find(
-          (field) => field.key === 'additionalinstructions',
-        )?.text?.value || 'NA';
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const eventData = event.data.object;
+        const customerData = eventData.customer_details;
+        const customerPhone = customerData.phone;
+        const customerName = customerData.name;
+        const customerAddress = stringifyAddressObject(customerData.address);
+        const additionalInstructions =
+          eventData.custom_fields.find(
+            (field) => field.key === 'additionalinstructions',
+          )?.text?.value || 'NA';
 
-      console.log(`customerName: ${customerName}`);
-      console.log(`customerPhone: ${customerPhone}`);
-      console.log(`customerAddress: ${customerAddress}`);
+        const orderData = eventData.metadata;
+        const orderKnives = orderData?.knives || 0;
+        const orderRepairs = orderData?.repairs || 0;
+        const orderTotal = eventData?.amount_total / 100;
 
-      const customerBody = {
-        name: customerName,
-        phone: customerPhone,
-        address: customerAddress,
-        note: additionalInstructions,
-      };
+        console.log(`customerName: ${customerName}`);
+        console.log(`customerPhone: ${customerPhone}`);
+        console.log(`customerAddress: ${customerAddress}`);
 
-      fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
-      insertNotionCustomer(customerBody);
+        const customerBody = {
+          name: customerName,
+          phone: customerPhone,
+          address: customerAddress,
+          note: additionalInstructions,
+        };
 
-      break;
-  }
+        fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
+        // const customer = await insertNotionCustomer(customerBody);
 
-  res.json({ received: true });
-});
+        const orderConstants = await getOrderConstants();
+
+        // const orderBody = {
+        //   knives: orderKnives,
+        //   repairs: orderRepairs,
+        //   orderTotal: orderTotal,
+        //   note: additionalInstructions,
+        //   customerId: customer.id,
+        // };
+
+        break;
+    }
+
+    res.json({ received: true });
+  },
+);
 
 export default router;
