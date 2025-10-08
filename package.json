@@ -16,5 +16,8 @@
     "pug": "^2.0.4",
     "stripe": "^19.1.0"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
 }
