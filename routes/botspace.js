@@ -16,7 +16,7 @@ const router = express.Router();
 
 const endpointSecret = process.env.STRIPE_SIGNING_KEY;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const botspaceNewOrderWebhookUrl = process.env.BOTSPACE_NEW_ORDER_WEBHOOK_URL;
+const BOTSPACE_NEW_ORDER_WEBHOOK_URL = 'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e4cbdbbf1d5ae408c5657d';
 
 router.get('/', (req, res) => {
   res.render('index', { title: 'Stripe' });
@@ -107,7 +107,7 @@ router.post(
           timing: orderConstants.timing,
         };
 
-        await fetchBotspace(botspaceNewOrderWebhookUrl, botspaceBody);
+        await fetchBotspace(BOTSPACE_NEW_ORDER_WEBHOOK_URL, botspaceBody);
 
         break;
     }
