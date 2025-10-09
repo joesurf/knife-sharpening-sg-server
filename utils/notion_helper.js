@@ -101,6 +101,16 @@ export const insertNotionOrder = async (order) => {
             },
           ],
         },
+        'Date of Pickup': {
+          date: {
+            start: order.pickupDate,
+          },
+        },
+        'Date of Delivery': {
+          date: {
+            start: order.deliveryDate,
+          },
+        },
       },
     });
     console.log(response);
