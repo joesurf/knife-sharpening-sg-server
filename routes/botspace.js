@@ -58,10 +58,6 @@ router.post(
         const orderRepairs = orderData?.repairs || 0;
         const orderTotal = eventData?.amount_total / 100;
 
-        console.log(`customerName: ${customerName}`);
-        console.log(`customerPhone: ${customerPhone}`);
-        console.log(`customerAddress: ${customerAddress}`);
-
         const customerBody = {
           name: customerName,
           phone: customerPhone,

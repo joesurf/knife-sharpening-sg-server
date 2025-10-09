@@ -43,7 +43,6 @@ export const insertNotionCustomer = async (customer) => {
         },
       },
     });
-    console.log(response);
     return response;
   } catch (error) {
     console.error('An error occurred:', error.message);
@@ -54,7 +53,6 @@ export const insertNotionCustomer = async (customer) => {
 
 export const insertNotionOrder = async (order) => {
   try {
-    console.log(order);
     const response = await notion.pages.create({
       parent: {
         data_source_id: ORDERS_DATASOURCE_ID,
@@ -114,7 +112,6 @@ export const insertNotionOrder = async (order) => {
         },
       },
     });
-    console.log(response);
     return response;
   } catch (error) {
     console.error('An error occurred:', error.message);
@@ -133,7 +130,6 @@ export const getOrderConstants = async () => {
         response.results[0].properties['Order Group'].rich_text[0].plain_text,
       timing: response.results[0].properties['Timing'].rich_text[0].plain_text,
     };
-    console.log(constants);
     return constants;
   } catch (error) {
     console.error('An error occurred:', error.message);
