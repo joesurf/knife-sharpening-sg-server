@@ -33,4 +33,8 @@ const fetchBotspace = (url, body) => {
     });
 };
 
-export { stringifyAddressObject, fetchBotspace };
+const getNewOrderNumber = (orderGroup, currentOrder) => {
+  return `${orderGroup}O${currentOrder + 1}`;
+};
+
+export { stringifyAddressObject, fetchBotspace, getNewOrderNumber };

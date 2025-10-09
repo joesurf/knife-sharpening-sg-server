@@ -1,6 +1,10 @@
 import express from 'express';
 import Stripe from 'stripe';
-import { stringifyAddressObject, fetchBotspace } from '../utils/utils.js';
+import {
+  stringifyAddressObject,
+  fetchBotspace,
+  getNewOrderNumber,
+} from '../utils/utils.js';
 import {
   insertNotionCustomer,
   insertNotionOrder,
@@ -52,23 +56,18 @@ router.post(
           eventData.custom_fields.find(
             (field) => field.key === 'additionalinstructions',
           )?.text?.value || 'NA';
-
         const orderData = eventData.metadata;
         const orderKnives = orderData?.knives || 0;
         const orderRepairs = orderData?.repairs || 0;
         const orderTotal = eventData?.amount_total / 100;
+        const orderConstants = await getOrderConstants();
 
         const customerBody = {
           name: customerName,
           phone: customerPhone,
           address: customerAddress,
-          note: additionalInstructions,
         };
-
-        await fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
         const customer = await insertNotionCustomer(customerBody);
-
-        const orderConstants = await getOrderConstants();
 
         const orderBody = {
           knives: parseInt(orderKnives),
@@ -78,11 +77,24 @@ router.post(
           note: additionalInstructions,
           customerId: customer.id,
           orderGroup: orderConstants.orderGroup,
+          currentOrder: orderConstants.currentOrder,
           pickupDate: orderConstants.pickupDate,
           deliveryDate: orderConstants.deliveryDate,
         };
-
         await insertNotionOrder(orderBody);
+
+        const botspaceBody = {
+          name: customerName,
+          phone: customerPhone,
+          address: customerAddress,
+          note: additionalInstructions,
+          orderNumber: getNewOrderNumber(
+            orderConstants.orderGroup,
+            orderConstants.currentOrder,
+          ),
+        };
+
+        await fetchBotspace(botspaceNewOrderWebhookUrl, botspaceBody);
 
         break;
     }
