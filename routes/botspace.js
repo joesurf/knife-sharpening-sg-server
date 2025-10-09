@@ -69,14 +69,15 @@ router.post(
           note: additionalInstructions,
         };
 
-        fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
+        await fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
         const customer = await insertNotionCustomer(customerBody);
 
         const orderConstants = await getOrderConstants();
 
         const orderBody = {
-          knives: orderKnives,
-          repairs: orderRepairs,
+          knives: parseInt(orderKnives),
+          repairs: parseInt(orderRepairs),
+          orderTotal: parseFloat(orderTotal),
           orderTotal: orderTotal,
           note: additionalInstructions,
           customerId: customer.id,

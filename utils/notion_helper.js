@@ -54,6 +54,7 @@ export const insertNotionCustomer = async (customer) => {
 
 export const insertNotionOrder = async (order) => {
   try {
+    console.log(order);
     const response = await notion.pages.create({
       parent: {
         data_source_id: ORDERS_DATASOURCE_ID,
