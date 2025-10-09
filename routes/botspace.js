@@ -10,6 +10,7 @@ import {
   insertNotionOrder,
   getOrderConstants,
 } from '../utils/notion_helper.js';
+import { parseISO, format } from 'date-fns';
 
 const router = express.Router();
 
@@ -83,6 +84,15 @@ router.post(
         };
         await insertNotionOrder(orderBody);
 
+        const formattedPickupDate = format(
+          parseISO(orderConstants.pickupDate),
+          'd MMMM',
+        );
+        const formattedDeliveryDate = format(
+          parseISO(orderConstants.deliveryDate),
+          'd MMMM',
+        );
+
         const botspaceBody = {
           name: customerName,
           phone: customerPhone,
@@ -92,6 +102,9 @@ router.post(
             orderConstants.orderGroup,
             orderConstants.currentOrder,
           ),
+          pickupDate: formattedPickupDate,
+          deliveryDate: formattedDeliveryDate,
+          timing: orderConstants.timing,
         };
 
         await fetchBotspace(botspaceNewOrderWebhookUrl, botspaceBody);
