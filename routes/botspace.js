@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { stringifyAddressObject, fetchBotspace } from '../utils/utils.js';
 import {
   insertNotionCustomer,
+  insertNotionOrder,
   getOrderConstants,
 } from '../utils/notion_helper.js';
 
@@ -69,17 +70,22 @@ router.post(
         };
 
         fetchBotspace(botspaceNewOrderWebhookUrl, customerBody);
-        // const customer = await insertNotionCustomer(customerBody);
+        const customer = await insertNotionCustomer(customerBody);
 
         const orderConstants = await getOrderConstants();
 
-        // const orderBody = {
-        //   knives: orderKnives,
-        //   repairs: orderRepairs,
-        //   orderTotal: orderTotal,
-        //   note: additionalInstructions,
-        //   customerId: customer.id,
-        // };
+        const orderBody = {
+          knives: orderKnives,
+          repairs: orderRepairs,
+          orderTotal: orderTotal,
+          note: additionalInstructions,
+          customerId: customer.id,
+          orderGroup: orderConstants.orderGroup,
+          pickupDate: orderConstants.pickupDate,
+          deliveryDate: orderConstants.deliveryDate,
+        };
+
+        await insertNotionOrder(orderBody);
 
         break;
     }

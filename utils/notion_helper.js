@@ -59,7 +59,7 @@ export const insertNotionOrder = async (order) => {
         data_source_id: ORDERS_DATASOURCE_ID,
       },
       properties: {
-        Name: {
+        ID: {
           title: [
             {
               text: {
@@ -95,9 +95,11 @@ export const insertNotionOrder = async (order) => {
           },
         },
         Customers: {
-          relation: {
-            id: order.customerId,
-          },
+          relation: [
+            {
+              id: order.customerId,
+            },
+          ],
         },
       },
     });
@@ -115,8 +117,10 @@ export const getOrderConstants = async () => {
     });
     const constants = {
       pickupDate: response.results[0].properties['Pickup Date'].date.start,
+      deliveryDate: response.results[0].properties['Delivery Date'].date.start,
       orderGroup:
         response.results[0].properties['Order Group'].rich_text[0].plain_text,
+      timing: response.results[0].properties['Timing'].rich_text[0].plain_text,
     };
     console.log(constants);
     return constants;
