@@ -62,6 +62,14 @@ router.post(
         const orderRepairs = orderData?.repairs || 0;
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
+        const formattedPickupDate = format(
+          parseISO(orderConstants.pickupDate),
+          'd MMMM',
+        );
+        const formattedDeliveryDate = format(
+          parseISO(orderConstants.deliveryDate),
+          'd MMMM',
+        );
 
         const customerBody = {
           name: customerName,
@@ -84,14 +92,6 @@ router.post(
         };
         await insertNotionOrder(orderBody);
 
-        const formattedPickupDate = format(
-          parseISO(orderConstants.pickupDate),
-          'd MMMM',
-        );
-        const formattedDeliveryDate = format(
-          parseISO(orderConstants.deliveryDate),
-          'd MMMM',
-        );
 
         const botspaceBody = {
           name: customerName,
@@ -106,7 +106,6 @@ router.post(
           deliveryDate: formattedDeliveryDate,
           timing: orderConstants.timing,
         };
-
         await fetchBotspace(BOTSPACE_NEW_ORDER_WEBHOOK_URL, botspaceBody);
 
         break;
