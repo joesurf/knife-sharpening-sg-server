@@ -2,7 +2,6 @@ import express from 'express';
 import Stripe from 'stripe';
 import {
   stringifyAddressObject,
-  fetchBotspace,
   getNewOrderNumber,
 } from '../utils/utils.js';
 import {
@@ -10,6 +9,9 @@ import {
   insertNotionOrder,
   getOrderConstants,
 } from '../utils/notion_helper.js';
+import {
+fetchBotspace,
+} from '../utils/botspace_helper.js';
 import { parseISO, format } from 'date-fns';
 
 const router = express.Router();
