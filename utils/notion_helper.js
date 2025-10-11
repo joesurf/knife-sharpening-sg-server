@@ -150,16 +150,22 @@ export const getOrderConstants = async () => {
   }
 };
 
-export const getOrders = async (orderGroup) => {
+export const getOrders = async (orderGroup, includeUrgent = false) => {
   try {
+    const filters = [
+      { property: 'ID', rich_text: { contains: `${orderGroup}O` } },
+    ];
+
+    if (!includeUrgent) {
+      filters.push({
+        property: 'ID',
+        rich_text: { does_not_contain: 'U' },
+      });
+    }
+
     const response = await notion.dataSources.query({
       data_source_id: ORDERS_DATASOURCE_ID,
-      filter: {
-        property: 'ID',
-        rich_text: {
-          contains: `${orderGroup}O`,
-        },
-      },
+      filter: { and: filters },
     });
     return response.results;
   } catch (error) {

@@ -23,7 +23,7 @@ const fetchBotspace = (url, body) => {
 const sendFridayCollectionReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
-  const orders = await getOrders(orderConstants.orderGroup);
+  const orders = await getOrders(orderConstants.orderGroup, false);
   orders.forEach(async (order) => {
     const orderBody = {
       name: order.properties['Customer Name'].rollup.array[0].title[0]
