@@ -149,3 +149,20 @@ export const getOrderConstants = async () => {
     console.error('An error occurred:', error.message);
   }
 };
+
+export const getOrders = async (orderGroup) => {
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: ORDERS_DATASOURCE_ID,
+      filter: {
+        property: 'ID',
+        rich_text: {
+          contains: `${orderGroup}O`,
+        },
+      },
+    });
+    return response.results;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+};
