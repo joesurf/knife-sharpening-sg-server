@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 cron.schedule(
-  '0 18 * * 5',
+  '25 17 * * 6',
   () => {
     console.log('[CRON] Running Friday Collection Reminder at 6pm');
     sendFridayCollectionReminder();
