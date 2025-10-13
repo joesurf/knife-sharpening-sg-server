@@ -50,7 +50,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '30 18 * * 5',
+  '57 17 * * 1',
   () => {
     console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
     updateOrderConstantsToNextOrderGroup();
@@ -61,7 +61,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '0 18 * * 6',
+  '0 18 * * 1',
   () => {
     console.log('[CRON] Running Saturday Delivery Reminder at 6pm');
     sendDeliveryReminder();
