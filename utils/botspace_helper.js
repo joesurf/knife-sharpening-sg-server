@@ -23,7 +23,7 @@ const fetchBotspace = (url, body) => {
     });
 };
 
-const sendFridayCollectionReminder = async () => {
+const sendCollectionReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
   const orders = await getOrders(orderConstants.orderGroup, false);
@@ -40,7 +40,7 @@ const sendFridayCollectionReminder = async () => {
   });
 };
 
-const sendSaturdayDeliveryReminder = async () => {
+const sendDeliveryReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
   const orders = await getOrders(orderConstants.orderGroup, false);
@@ -57,8 +57,4 @@ const sendSaturdayDeliveryReminder = async () => {
   });
 };
 
-export {
-  fetchBotspace,
-  sendFridayCollectionReminder,
-  sendSaturdayDeliveryReminder,
-};
+export { fetchBotspace, sendCollectionReminder, sendDeliveryReminder };

@@ -10,8 +10,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
 import {
-  sendFridayCollectionReminder,
-  sendSaturdayDeliveryReminder,
+  sendCollectionReminder,
+  sendDeliveryReminder,
 } from './utils/botspace_helper.js';
 
 const app = express();
@@ -41,7 +41,7 @@ cron.schedule(
   '0 18 * * 5',
   () => {
     console.log('[CRON] Running Friday Collection Reminder at 6pm');
-    sendFridayCollectionReminder();
+    sendCollectionReminder();
   },
   {
     timezone: 'Asia/Singapore',
@@ -52,7 +52,7 @@ cron.schedule(
   '0 18 * * 6',
   () => {
     console.log('[CRON] Running Saturday Delivery Reminder at 6pm');
-    sendSaturdayDeliveryReminder();
+    sendDeliveryReminder();
   },
   {
     timezone: 'Asia/Singapore',
