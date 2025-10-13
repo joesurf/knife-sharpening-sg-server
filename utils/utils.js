@@ -1,3 +1,5 @@
+import { parseISO, format } from 'date-fns';
+
 const stringifyAddressObject = (addressObject) => {
   const addressLines = [];
 
@@ -20,5 +22,8 @@ const getNewOrderNumber = (orderGroup, currentOrder) => {
   return `${orderGroup}O${currentOrder + 1}`;
 };
 
+const formatDate = (date) => {
+  return format(parseISO(date), 'd MMMM');
+};
 
-export { stringifyAddressObject, getNewOrderNumber };
+export { stringifyAddressObject, getNewOrderNumber, formatDate };

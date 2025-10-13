@@ -1,13 +1,16 @@
 import express from 'express';
 import Stripe from 'stripe';
-import { stringifyAddressObject, getNewOrderNumber } from '../utils/utils.js';
+import {
+  stringifyAddressObject,
+  getNewOrderNumber,
+  formatDate,
+} from '../utils/utils.js';
 import {
   insertNotionCustomer,
   insertNotionOrder,
   getOrderConstants,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
-import { parseISO, format } from 'date-fns';
 
 const router = express.Router();
 
@@ -22,6 +25,8 @@ router.get('/', (req, res) => {
 
 router.get('/getOrderConstants', async (req, res) => {
   const orderConstants = await getOrderConstants();
+  orderConstants.pickupDate = formatDate(orderConstants.pickupDate);
+  orderConstants.deliveryDate = formatDate(orderConstants.deliveryDate);
   res.json(orderConstants);
 });
 
@@ -65,14 +70,8 @@ router.post(
         const orderRepairs = orderData?.repairs || 0;
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
-        const formattedPickupDate = format(
-          parseISO(orderConstants.pickupDate),
-          'd MMMM',
-        );
-        const formattedDeliveryDate = format(
-          parseISO(orderConstants.deliveryDate),
-          'd MMMM',
-        );
+        const formattedPickupDate = formatDate(orderConstants.pickupDate);
+        const formattedDeliveryDate = formatDate(orderConstants.deliveryDate);
 
         const customerBody = {
           name: customerName,
