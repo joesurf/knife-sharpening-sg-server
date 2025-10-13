@@ -1,6 +1,4 @@
 import 'dotenv/config';
-import { sendFridayCollectionReminder } from "./utils/botspace_helper.js";
+import { sendSaturdayDeliveryReminder } from './utils/botspace_helper.js';
 
-sendFridayCollectionReminder();
-
-
+sendSaturdayDeliveryReminder();
