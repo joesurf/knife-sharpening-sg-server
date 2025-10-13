@@ -61,7 +61,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '0 18 * * 1',
+  '4 18 * * 1',
   () => {
     console.log('[CRON] Running Saturday Delivery Reminder at 6pm');
     sendDeliveryReminder();
