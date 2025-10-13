@@ -57,4 +57,31 @@ const sendDeliveryReminder = async () => {
   });
 };
 
+const updateOrderConstantsToNextOrderGroup = async () => {
+  const orderConstants = await getOrderConstants();
+  const newOrderGroup = orderConstants.orderGroup + 1;
+  const newOrderNumber = 0;
+  await notion.pages.update({
+    page_id: ORDER_CONSTANTS_PAGE_ID,
+    properties: {
+      'Order Group': {
+        number: newOrderGroup,
+      },
+      'Current Order': {
+        number: 1,
+      },
+      'Pickup Date': {
+        date: {
+          start: formatDate(new Date()),
+        },
+      },
+      'Delivery Date': {
+        date: {
+          start: formatDate(addDays(new Date(), 1)),
+        },
+      },
+    },
+  });
+};
+
 export { fetchBotspace, sendCollectionReminder, sendDeliveryReminder };

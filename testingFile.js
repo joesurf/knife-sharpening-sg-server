@@ -1,7 +1,4 @@
 import 'dotenv/config';
+import { updateOrderConstantsToNextOrderGroup } from './utils/notion_helper.js';
 
-const checkingResponse = await fetch(
-  'http://localhost:3000/botspace/getOrderConstants',
-);
-const checkingData = await checkingResponse.json();
-console.log(checkingData);
+updateOrderConstantsToNextOrderGroup();

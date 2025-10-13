@@ -1,5 +1,6 @@
 import { Client } from '@notionhq/client';
 import { getNewOrderNumber } from './utils.js';
+import { parseISO, addWeeks, format } from 'date-fns';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -171,4 +172,39 @@ export const getOrders = async (orderGroup, includeUrgent = false) => {
   } catch (error) {
     console.error('An error occurred:', error.message);
   }
+};
+
+export const updateOrderConstantsToNextOrderGroup = async () => {
+  const orderConstants = await getOrderConstants();
+  const newOrderGroup = orderConstants.orderGroup + 1;
+  const newPickupDate = format(
+    addWeeks(parseISO(orderConstants.pickupDate), 1),
+    'yyyy-MM-dd',
+  );
+  const newDeliveryDate = format(
+    addWeeks(parseISO(orderConstants.deliveryDate), 1),
+    'yyyy-MM-dd',
+  );
+
+  await notion.pages.update({
+    page_id: ORDER_CONSTANTS_PAGE_ID,
+    properties: {
+      'Order Group': {
+        number: newOrderGroup,
+      },
+      'Current Order': {
+        number: 0,
+      },
+      'Pickup Date': {
+        date: {
+          start: newPickupDate,
+        },
+      },
+      'Delivery Date': {
+        date: {
+          start: newDeliveryDate,
+        },
+      },
+    },
+  });
 };

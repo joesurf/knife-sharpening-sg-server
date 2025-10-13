@@ -13,6 +13,7 @@ import {
   sendCollectionReminder,
   sendDeliveryReminder,
 } from './utils/botspace_helper.js';
+import { updateOrderConstantsToNextOrderGroup } from './utils/notion_helper.js';
 
 const app = express();
 
@@ -42,6 +43,17 @@ cron.schedule(
   () => {
     console.log('[CRON] Running Friday Collection Reminder at 6pm');
     sendCollectionReminder();
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '30 18 * * 5',
+  () => {
+    console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
+    updateOrderConstantsToNextOrderGroup();
   },
   {
     timezone: 'Asia/Singapore',
