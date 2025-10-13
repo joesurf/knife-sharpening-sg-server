@@ -20,6 +20,11 @@ router.get('/', (req, res) => {
   res.render('index', { title: 'Stripe' });
 });
 
+router.get('/getOrderConstants', async (req, res) => {
+  const orderConstants = await getOrderConstants();
+  res.json(orderConstants);
+});
+
 router.post(
   '/',
   express.raw({ type: 'application/json' }),
@@ -92,7 +97,7 @@ router.post(
 
         const botspaceBody = {
           name: customerName,
-          phone: customerPhone,
+          phone: customerPhone.replaceAll(' ', ''),
           address: customerAddress,
           note: additionalInstructions,
           orderNumber: getNewOrderNumber(

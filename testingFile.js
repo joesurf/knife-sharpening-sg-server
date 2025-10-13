@@ -1,4 +1,7 @@
 import 'dotenv/config';
-import { sendSaturdayDeliveryReminder } from './utils/botspace_helper.js';
 
-sendSaturdayDeliveryReminder();
+const checkingResponse = await fetch(
+  'http://localhost:3000/botspace/getOrderConstants',
+);
+const checkingData = await checkingResponse.json();
+console.log(checkingData);
