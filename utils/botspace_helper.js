@@ -43,7 +43,9 @@ const sendCollectionReminder = async () => {
 const sendDeliveryReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
-  const orders = await getOrders(orderConstants.orderGroup, false);
+  // This goes out on Saturday. The order constants are updated on Friday. So we need to go back one order group
+  const previousOrderGroup = orderConstants.orderGroup - 1;
+  const orders = await getOrders(previousOrderGroup, false);
   orders.forEach(async (order) => {
     const orderBody = {
       name: order.properties['Customer Name'].rollup.array[0].title[0]
@@ -54,33 +56,6 @@ const sendDeliveryReminder = async () => {
       timing: timing,
     };
     await fetchBotspace(BOTSPACE_DELIVERY_WEBHOOK_URL, orderBody);
-  });
-};
-
-const updateOrderConstantsToNextOrderGroup = async () => {
-  const orderConstants = await getOrderConstants();
-  const newOrderGroup = orderConstants.orderGroup + 1;
-  const newOrderNumber = 0;
-  await notion.pages.update({
-    page_id: ORDER_CONSTANTS_PAGE_ID,
-    properties: {
-      'Order Group': {
-        number: newOrderGroup,
-      },
-      'Current Order': {
-        number: 1,
-      },
-      'Pickup Date': {
-        date: {
-          start: formatDate(new Date()),
-        },
-      },
-      'Delivery Date': {
-        date: {
-          start: formatDate(addDays(new Date(), 1)),
-        },
-      },
-    },
   });
 };
 
