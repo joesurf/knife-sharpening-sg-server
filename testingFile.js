@@ -1,4 +1,9 @@
 import 'dotenv/config';
-import { updateOrderConstantsToNextOrderGroup } from './utils/notion_helper.js';
+import {
+  sendMessageToTelegramNotifications,
+  createMessageFromOrders,
+} from './utils/telegram_helper.js';
 
-updateOrderConstantsToNextOrderGroup();
+const { sharpenerMessage, driverMessage } = await createMessageFromOrders();
+sendMessageToTelegramNotifications(sharpenerMessage);
+sendMessageToTelegramNotifications(driverMessage);

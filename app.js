@@ -50,6 +50,21 @@ cron.schedule(
 );
 
 cron.schedule(
+  '25 15 * * 2',
+  async () => {
+    console.log(
+      '[CRON] Generating Order Messages for Shapener & Driver at 6.15pm',
+    );
+    const { sharpenerMessage, driverMessage } = await createMessageFromOrders();
+    sendMessageToTelegramNotifications(sharpenerMessage);
+    sendMessageToTelegramNotifications(driverMessage);
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
   '30 18 * * 5',
   () => {
     console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
