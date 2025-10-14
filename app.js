@@ -14,6 +14,10 @@ import {
   sendDeliveryReminder,
 } from './utils/botspace_helper.js';
 import { updateOrderConstantsToNextOrderGroup } from './utils/notion_helper.js';
+import {
+  createMessageFromOrders,
+  sendMessageToTelegramNotifications,
+} from './utils/telegram_helper.js';
 
 const app = express();
 
@@ -50,7 +54,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '30 15 * * 2',
+  '34 15 * * 2',
   async () => {
     console.log(
       '[CRON] Generating Order Messages for Sharpener & Driver at 6.15pm',
