@@ -54,7 +54,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '34 15 * * 2',
+  '15 18 * * 5',
   async () => {
     console.log(
       '[CRON] Generating Order Messages for Sharpener & Driver at 6.15pm',
