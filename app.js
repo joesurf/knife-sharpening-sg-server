@@ -50,10 +50,10 @@ cron.schedule(
 );
 
 cron.schedule(
-  '25 15 * * 2',
+  '30 15 * * 2',
   async () => {
     console.log(
-      '[CRON] Generating Order Messages for Shapener & Driver at 6.15pm',
+      '[CRON] Generating Order Messages for Sharpener & Driver at 6.15pm',
     );
     const { sharpenerMessage, driverMessage } = await createMessageFromOrders();
     sendMessageToTelegramNotifications(sharpenerMessage);
