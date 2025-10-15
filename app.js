@@ -13,6 +13,7 @@ import {
   send180DayReminder,
   sendCollectionReminder,
   sendDeliveryReminder,
+  sendRequestedReminder,
 } from './utils/botspace_helper.js';
 import { updateOrderConstantsToNextOrderGroup } from './utils/notion_helper.js';
 import {
@@ -94,8 +95,9 @@ cron.schedule(
 cron.schedule(
   '0 18 * * 3',
   () => {
-    console.log('[CRON] Running Wednesday 180 Day Reminder at 6pm');
+    console.log('[CRON] Running Wednesday 180 Day and Requested Reminder at 6pm');
     send180DayReminder();
+    sendRequestedReminder();
   },
   {
     timezone: 'Asia/Singapore',
