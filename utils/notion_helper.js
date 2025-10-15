@@ -290,3 +290,45 @@ export const getCustomers180DaysOld = async () => {
     console.error('getCustomers180DaysOld error:', error.message);
   }
 }
+
+export const getCustomersWithReminderDates = async () => {
+  const nowISO = new Date().toISOString();
+
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: CUSTOMERS_DATASOURCE_ID,
+      filter: {
+        and: [
+          {
+            property: 'Reminder Date',
+            date: { on_or_before: nowISO },
+          },
+          {
+            property: 'Reminder Date',
+            date: { is_not_empty: true },
+          },
+        ],
+      },
+      page_size: 100,
+    });
+
+    return response.results;
+  } catch (error) {
+    console.error('getCustomersWithReminderDates error:', error.message);
+  }
+}
+
+export const clearNotionCustomerReminderDate = async(customerId) => {  
+  try {
+    const response = await notion.pages.update({
+      page_id: customerId,
+      properties: {
+        'Reminder Date': { date: null },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('clearNotionCustomerReminderDate error:', error.message);
+  }
+}

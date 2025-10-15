@@ -3,6 +3,8 @@ import {
   getOrders, 
   getCustomers180DaysOld,
   updateNotionCustomer180DayFollowUp,
+  clearNotionCustomerReminderDate,
+  getCustomersWithReminderDates,
 } from './notion_helper.js';
 
 const BOTSPACE_COLLECTION_WEBHOOK_URL =
@@ -13,6 +15,9 @@ const BOTSPACE_DELIVERY_WEBHOOK_URL =
 
 const BOTSPACE_180DAY_WEBHOOK_URL = 
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ef568abf1d5ae4083e5a36';
+
+const BOTSPACE_REMINDER_WEBHOOK_URL = 
+  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68eff0c8bf1d5ae40860a005';
 
 const fetchBotspace = (url, body) => {
   return fetch(url, {
@@ -80,4 +85,23 @@ const send180DayReminder = async () => {
   })
 };
 
-export { fetchBotspace, sendCollectionReminder, sendDeliveryReminder, send180DayReminder };
+const sendRequestedReminder = async () => {
+  const customers = await getCustomersWithReminderDates();
+  customers.forEach(async (customer) => {
+    const customerBody = {
+      id: customer.id,
+      name: customer.properties['Name'].title[0].plain_text,
+      phone: customer.properties['Phone'].phone_number.replaceAll(' ', ''),
+    }
+    await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, customerBody);
+    await clearNotionCustomerReminderDate(customerBody.id);
+  })
+};
+
+export { 
+  fetchBotspace, 
+  sendCollectionReminder, 
+  sendDeliveryReminder, 
+  send180DayReminder, 
+  sendRequestedReminder,
+};
