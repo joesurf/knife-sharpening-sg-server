@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
 import {
+  send180DayReminder,
   sendCollectionReminder,
   sendDeliveryReminder,
 } from './utils/botspace_helper.js';
@@ -89,6 +90,17 @@ cron.schedule(
     timezone: 'Asia/Singapore',
   },
 );
+
+cron.schedule(
+  '0 18 * * 3',
+  () => {
+    console.log('[CRON] Running Wednesday 180 Day Reminder at 6pm');
+    send180DayReminder();
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+)
 
 // catch 404 and forward to error handler
 app.use((req, res) => {

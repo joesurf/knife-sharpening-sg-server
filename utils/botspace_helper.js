@@ -1,10 +1,18 @@
-import { getOrderConstants, getOrders } from './notion_helper.js';
+import { 
+  getOrderConstants, 
+  getOrders, 
+  getCustomers180DaysOld,
+  updateNotionCustomer180DayFollowUp,
+} from './notion_helper.js';
 
 const BOTSPACE_COLLECTION_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e8a0a0f881d90a0c73f941';
 
 const BOTSPACE_DELIVERY_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ecb2d0f881d90a0ce76bcc';
+
+const BOTSPACE_180DAY_WEBHOOK_URL = 
+  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ef568abf1d5ae4083e5a36';
 
 const fetchBotspace = (url, body) => {
   return fetch(url, {
@@ -59,4 +67,17 @@ const sendDeliveryReminder = async () => {
   });
 };
 
-export { fetchBotspace, sendCollectionReminder, sendDeliveryReminder };
+const send180DayReminder = async () => {
+  const customers = await getCustomers180DaysOld();
+  customers.forEach(async (customer) => {
+    const customerBody = {
+      id: customer.id,
+      name: customer.properties['Name'].title[0].plain_text,
+      phone: customer.properties['Phone'].phone_number.replaceAll(' ', ''),
+    }
+    await fetchBotspace(BOTSPACE_180DAY_WEBHOOK_URL, customerBody);
+    await updateNotionCustomer180DayFollowUp(customerBody.id, true);
+  })
+};
+
+export { fetchBotspace, sendCollectionReminder, sendDeliveryReminder, send180DayReminder };

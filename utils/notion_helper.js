@@ -49,6 +49,21 @@ export const updateNotionCustomerAddress = async(customerId, address) => {
   }
 }
 
+export const updateNotionCustomer180DayFollowUp = async(customerId, check) => {  
+  try {
+    const response = await notion.pages.update({
+      page_id: customerId,
+      properties: {
+        '180 Day Followup?': { checkbox: check },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+}
+
 export const insertNotionCustomer = async (customer) => {
   try {
     const response = await notion.pages.create({
@@ -246,3 +261,32 @@ export const updateOrderConstantsToNextOrderGroup = async () => {
     },
   });
 };
+
+export const getCustomers180DaysOld = async () => {
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: CUSTOMERS_DATASOURCE_ID,
+      filter: {
+        and: [
+          {
+            property: 'Days Since Last Order / Contact',
+            number: { greater_than_or_equal_to: 180 },
+          },
+          {
+            property: 'Status',
+            select: { equals: 'Customer' },
+          },
+          {
+            property: '180 Day Followup?',
+            checkbox: { equals: false },
+          },
+        ],
+      },
+      page_size: 100,
+    });
+
+    return response.results;
+  } catch (error) {
+    console.error('getCustomers180DaysOld error:', error.message);
+  }
+}
