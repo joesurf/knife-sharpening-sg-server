@@ -11,6 +11,44 @@ const ORDERS_DATASOURCE_ID = '9c015ed7-2d42-4689-b036-794ac2ba6295';
 const CUSTOMERS_DATASOURCE_ID = 'e4dcf0cf-c09d-4917-9d2a-b7e1eaedf976';
 const ORDER_CONSTANTS_PAGE_ID = '286b653fdfd380c7a11bc46af8d61357';
 
+export const getNotionCustomerIdByPhone = async(customerPhone) => {
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: CUSTOMERS_DATASOURCE_ID,
+      filter: {
+        or: [
+          {
+            property: 'Phone',
+            phone_number: {
+              equals: customerPhone,
+            },
+          },
+        ],
+      },
+      page_size: 1,
+    });
+
+    return response.results?.[0]?.id;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+};
+
+export const updateNotionCustomerAddress = async(customerId, address) => {  
+  try {
+    const response = await notion.pages.update({
+      page_id: customerId,
+      properties: {
+        Address:{ rich_text: [{ text: { content: String(address) } }] }
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+}
+
 export const insertNotionCustomer = async (customer) => {
   try {
     const response = await notion.pages.create({

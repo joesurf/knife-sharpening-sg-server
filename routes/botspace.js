@@ -9,6 +9,8 @@ import {
   insertNotionCustomer,
   insertNotionOrder,
   getOrderConstants,
+  getNotionCustomerIdByPhone,
+  updateNotionCustomerAddress,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
 
@@ -56,6 +58,7 @@ router.post(
 
     switch (event.type) {
       case 'checkout.session.completed':
+        console.log(event);
         const eventData = event.data.object;
         const customerData = eventData.customer_details;
         const customerPhone = customerData.phone.replaceAll(' ', '');
@@ -78,7 +81,14 @@ router.post(
           phone: customerPhone,
           address: customerAddress,
         };
-        const customer = await insertNotionCustomer(customerBody);
+
+        let customerId = await getNotionCustomerIdByPhone(customerPhone);
+        await updateNotionCustomerAddress(customerId, customerBody.address)
+
+        if (!customerId) {
+          const customer = await insertNotionCustomer(customerBody);
+          customerId = customer.id;
+        }
 
         const orderBody = {
           knives: parseInt(orderKnives),
@@ -86,7 +96,7 @@ router.post(
           orderTotal: parseFloat(orderTotal),
           orderTotal: orderTotal,
           note: additionalInstructions,
-          customerId: customer.id,
+          customerId: customerId,
           orderGroup: orderConstants.orderGroup,
           currentOrder: orderConstants.currentOrder,
           pickupDate: orderConstants.pickupDate,
