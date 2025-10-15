@@ -11,6 +11,7 @@ import {
   getOrderConstants,
   getNotionCustomerIdByPhone,
   updateNotionCustomerAddress,
+  updateNotionCustomer180DayFollowUp,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
 
@@ -83,9 +84,11 @@ router.post(
         };
 
         let customerId = await getNotionCustomerIdByPhone(customerPhone);
-        await updateNotionCustomerAddress(customerId, customerBody.address)
 
-        if (!customerId) {
+        if (customerId) {
+          await updateNotionCustomerAddress(customerId, customerBody.address);
+          await updateNotionCustomer180DayFollowUp(customerId, false);
+        } else {
           const customer = await insertNotionCustomer(customerBody);
           customerId = customer.id;
         }
