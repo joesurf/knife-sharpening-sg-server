@@ -12,6 +12,7 @@ import {
   getNotionCustomerIdByPhone,
   updateNotionCustomerAddress,
   updateNotionCustomer180DayFollowUp,
+  clearNotionCustomerReminderDate,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
 
