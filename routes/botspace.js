@@ -89,7 +89,7 @@ router.post(
         if (customerId) {
           await updateNotionCustomerAddress(customerId, customerBody.address);
           await updateNotionCustomer180DayFollowUp(customerId, false);
-          await clearNotionCustomerReminderDate(customerBody.id);
+          await clearNotionCustomerReminderDate(customerId);
         } else {
           const customer = await insertNotionCustomer(customerBody);
           customerId = customer.id;
