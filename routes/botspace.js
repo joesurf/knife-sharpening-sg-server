@@ -68,7 +68,7 @@ router.post(
         const customerAddress = stringifyAddressObject(customerData.address);
         const additionalInstructions =
           eventData.custom_fields.find(
-            (field) => field.key === 'additionalinstructions',
+            (field) => field.key === 'additional_instructions',
           )?.text?.value || 'NA';
         const orderData = eventData.metadata;
         const orderKnives = orderData?.knives || 0;
