@@ -220,6 +220,7 @@ export const getOrders = async (orderGroup, includeUrgent = false) => {
     const response = await notion.dataSources.query({
       data_source_id: ORDERS_DATASOURCE_ID,
       filter: { and: filters },
+      sorts: [{ property: 'ID', direction: 'ascending' }],
     });
     return response.results;
   } catch (error) {
