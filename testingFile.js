@@ -6,6 +6,4 @@ import {
 
 const { sharpenerMessage, driverMessage } = await createMessageFromOrders();
 sendMessageToTelegramNotifications(sharpenerMessage);
-sendMessageToTelegramNotifications(driverMessage);
-
-// sean testing git
+// sendMessageToTelegramNotifications(driverMessage);
