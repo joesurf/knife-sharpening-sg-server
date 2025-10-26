@@ -68,3 +68,13 @@ Total – $${orders.length * 16}
 
   return { sharpenerMessage, driverMessage };
 };
+
+export const createNewOrderNotificationMessage = (orderInfo) => {
+  const message = `
+${orderInfo.orderNumber}: ${orderInfo.name} (${orderInfo.phone}) has placed an order.
+- Address: ${orderInfo.address}
+- Note: ${orderInfo.note}
+  `
+
+  return message;
+};

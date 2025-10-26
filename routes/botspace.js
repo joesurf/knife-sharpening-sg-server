@@ -15,6 +15,7 @@ import {
   clearNotionCustomerReminderDate,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
+import { createNewOrderNotificationMessage, sendMessageToTelegramNotifications } from '../utils/telegram_helper.js';
 
 const router = express.Router();
 
@@ -123,6 +124,9 @@ router.post(
           timing: orderConstants.timing,
         };
         await fetchBotspace(BOTSPACE_NEW_ORDER_WEBHOOK_URL, botspaceBody);
+
+        const newOrderNotification = createNewOrderNotificationMessage(botspaceBody);
+        await sendMessageToTelegramNotifications(newOrderNotification);
 
         break;
     }
