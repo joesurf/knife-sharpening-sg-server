@@ -1,6 +1,6 @@
 import { Client } from '@notionhq/client';
 import { getNewOrderNumber } from './utils.js';
-import { parseISO, addWeeks, format } from 'date-fns';
+import { parseISO, addWeeks, addDays, format } from 'date-fns';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -11,7 +11,21 @@ const ORDERS_DATASOURCE_ID = '9c015ed7-2d42-4689-b036-794ac2ba6295';
 const CUSTOMERS_DATASOURCE_ID = 'e4dcf0cf-c09d-4917-9d2a-b7e1eaedf976';
 const ORDER_CONSTANTS_PAGE_ID = '286b653fdfd380c7a11bc46af8d61357';
 
-export const getNotionCustomerIdByPhone = async(customerPhone) => {
+export const isPickupTomorrow = async () => {
+  const orderConstants = await getOrderConstants();
+  const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+  const pickupDate = format(orderConstants.pickupDate, 'yyyy-MM-dd');
+  return tomorrow === pickupDate;
+};
+
+export const isDeliveryTomorrow = async () => {
+  const orderConstants = await getOrderConstants();
+  const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+  const deliveryDate = format(orderConstants.deliveryDate, 'yyyy-MM-dd');
+  return tomorrow === deliveryDate;
+};
+
+export const getNotionCustomerIdByPhone = async (customerPhone) => {
   try {
     const response = await notion.dataSources.query({
       data_source_id: CUSTOMERS_DATASOURCE_ID,
@@ -34,12 +48,12 @@ export const getNotionCustomerIdByPhone = async(customerPhone) => {
   }
 };
 
-export const updateNotionCustomerAddress = async(customerId, address) => {  
+export const updateNotionCustomerAddress = async (customerId, address) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,
       properties: {
-        Address:{ rich_text: [{ text: { content: String(address) } }] }
+        Address: { rich_text: [{ text: { content: String(address) } }] },
       },
     });
 
@@ -47,9 +61,9 @@ export const updateNotionCustomerAddress = async(customerId, address) => {
   } catch (error) {
     console.error('An error occurred:', error.message);
   }
-}
+};
 
-export const updateNotionCustomer180DayFollowUp = async(customerId, check) => {  
+export const updateNotionCustomer180DayFollowUp = async (customerId, check) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,
@@ -62,7 +76,7 @@ export const updateNotionCustomer180DayFollowUp = async(customerId, check) => {
   } catch (error) {
     console.error('An error occurred:', error.message);
   }
-}
+};
 
 export const insertNotionCustomer = async (customer) => {
   try {
@@ -290,7 +304,7 @@ export const getCustomers180DaysOld = async () => {
   } catch (error) {
     console.error('getCustomers180DaysOld error:', error.message);
   }
-}
+};
 
 export const getCustomersWithReminderDates = async () => {
   const nowISO = new Date().toISOString();
@@ -317,9 +331,9 @@ export const getCustomersWithReminderDates = async () => {
   } catch (error) {
     console.error('getCustomersWithReminderDates error:', error.message);
   }
-}
+};
 
-export const clearNotionCustomerReminderDate = async(customerId) => {  
+export const clearNotionCustomerReminderDate = async (customerId) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,
@@ -332,4 +346,4 @@ export const clearNotionCustomerReminderDate = async(customerId) => {
   } catch (error) {
     console.error('clearNotionCustomerReminderDate error:', error.message);
   }
-}
+};
