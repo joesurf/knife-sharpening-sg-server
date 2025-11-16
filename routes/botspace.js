@@ -74,10 +74,16 @@ router.post(
         const orderData = eventData.metadata;
         const orderKnives = orderData?.knives || 0;
         const orderRepairs = orderData?.repairs || 0;
+        const orderCustom = orderData?.custom || 0;
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
         const formattedPickupDate = formatDate(orderConstants.pickupDate);
         const formattedDeliveryDate = formatDate(orderConstants.deliveryDate);
+
+        // If the order is custom, we don't want to create a new order
+        if (orderCustom > 0) {
+          break;
+        }
 
         const customerBody = {
           name: customerName,
