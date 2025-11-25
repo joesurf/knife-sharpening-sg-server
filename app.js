@@ -9,6 +9,7 @@ import botspaceRouter from './routes/botspace.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
+import { PostHog } from 'posthog-node';
 import {
   send180DayReminder,
   sendCollectionReminder,
@@ -26,6 +27,15 @@ import {
 } from './utils/telegram_helper.js';
 
 const app = express();
+
+// Initialize PostHog
+const posthog = new PostHog(
+  process.env.POSTHOG_KEY,
+  { host: 'https://us.i.posthog.com' }
+);
+
+// Export posthog client so it can be used in routes
+export { posthog };
 
 // Recreate __dirname (not available by default in ESM)
 const __filename = fileURLToPath(import.meta.url);
@@ -120,12 +130,12 @@ cron.schedule(
 );
 
 // catch 404 and forward to error handler
-app.use((req, res) => {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
