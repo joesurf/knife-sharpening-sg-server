@@ -51,7 +51,6 @@ app.use(logger('dev'));
 // Has to be placed before express.json()
 // Stripe needs the raw body instead of JSON
 app.use('/botspace', express.raw({ type: 'application/json' }), botspaceRouter);
-app.use('/analytics', analyticsRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -59,6 +58,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/analytics', analyticsRouter);
 
 cron.schedule(
   '0 18 * * 5',
