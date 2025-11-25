@@ -4,6 +4,7 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import cors from 'cors';
 import indexRouter from './routes/index.js';
 import botspaceRouter from './routes/botspace.js';
 import analyticsRouter from './routes/analytics.js';
@@ -47,6 +48,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
+app.use(cors());
 
 // Has to be placed before express.json()
 // Stripe needs the raw body instead of JSON

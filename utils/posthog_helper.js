@@ -22,6 +22,18 @@ export async function trackWhatsAppAnalytics(event_name, payload) {
 
     const distinctId = phone;
 
+    // If we have a matched click with a PostHog ID, alias them together
+    if (payload?.matchedClick?.distinct_id) {
+      const posthogId = payload.matchedClick.distinct_id;
+
+      posthog.alias({
+        distinctId: phone,
+        alias: posthogId,
+      });
+
+      console.log(`Aliased PostHog ID ${posthogId} with phone ${phone}`);
+    }
+
     posthog.capture({
       distinctId: distinctId,
       event: event_name,
@@ -31,7 +43,7 @@ export async function trackWhatsAppAnalytics(event_name, payload) {
       },
     });
 
-    console.log(` Tracked ${event_name} for ${phone}`);
+    console.log(`Tracked ${event_name} for ${phone}`);
 
     return {
       success: true,
