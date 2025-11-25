@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import indexRouter from './routes/index.js';
 import botspaceRouter from './routes/botspace.js';
+import analyticsRouter from './routes/analytics.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
@@ -50,6 +51,7 @@ app.use(logger('dev'));
 // Has to be placed before express.json()
 // Stripe needs the raw body instead of JSON
 app.use('/botspace', express.raw({ type: 'application/json' }), botspaceRouter);
+app.use('/analytics', analyticsRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
