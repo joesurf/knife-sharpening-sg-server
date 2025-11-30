@@ -21,7 +21,7 @@ export const isPickupTomorrow = async () => {
 export const isDeliveryTomorrow = async () => {
   const orderConstants = await getOrderConstants();
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-  const deliveryDate = format(orderConstants.deliveryDate, 'yyyy-MM-dd');
+  const deliveryDate = format(orderConstants.previousDeliveryDate, 'yyyy-MM-dd');
   return tomorrow === deliveryDate;
 };
 
@@ -208,6 +208,8 @@ export const getOrderConstants = async () => {
     const constants = {
       pickupDate: response.results[0].properties['Pickup Date'].date.start,
       deliveryDate: response.results[0].properties['Delivery Date'].date.start,
+      previousPickupDate: response.results[0].properties['Previous Pickup Date'].date.start,
+      previousDeliveryDate: response.results[0].properties['Previous Delivery Date'].date.start,
       orderGroup: response.results[0].properties['Order Group'].number,
       currentOrder: response.results[0].properties['Current Order'].number,
       timing: response.results[0].properties['Timing'].rich_text[0].plain_text,
@@ -271,6 +273,16 @@ export const updateOrderConstantsToNextOrderGroup = async () => {
       'Delivery Date': {
         date: {
           start: newDeliveryDate,
+        },
+      },
+      'Previous Pickup Date': {
+        date: {
+          start: orderConstants.pickupDate,
+        },
+      },
+      'Previous Delivery Date': {
+        date: {
+          start: orderConstants.deliveryDate,
         },
       },
     },
