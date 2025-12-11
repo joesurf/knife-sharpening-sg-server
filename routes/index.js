@@ -35,7 +35,7 @@ router.get('/test', (req, res) => {
 });
 
 router.post(
-  '/newOrder',
+  '/new-order',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
     let event;
