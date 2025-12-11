@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
   res.render('index', { title: 'Stripe' });
 });
 
-router.get('/getOrderConstants', async (req, res) => {
+router.get('/get-order-constants', async (req, res) => {
   const orderConstants = await getOrderConstants();
   orderConstants.pickupDate = formatDate(orderConstants.pickupDate);
   orderConstants.deliveryDate = formatDate(orderConstants.deliveryDate);
