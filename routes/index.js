@@ -1,32 +1,12 @@
 import express from 'express';
-import Stripe from 'stripe';
-import {
-  stringifyAddressObject,
-  getNewOrderNumber,
-  formatDate,
-} from '../utils/utils.js';
-import {
-  insertNotionCustomer,
-  insertNotionOrder,
-  getOrderConstants,
-  getNotionCustomerIdByPhone,
-  updateNotionCustomerAddress,
-  updateNotionCustomer180DayFollowUp,
-  clearNotionCustomerReminderDate,
-} from '../utils/notion_helper.js';
-import { fetchBotspace } from '../utils/botspace_helper.js';
-import { createNewOrderNotificationMessage, sendMessageToTelegramNotifications } from '../utils/telegram_helper.js';
+import multer from 'multer';
 
 const router = express.Router();
 
-const endpointSecret = process.env.STRIPE_SIGNING_KEY;
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const BOTSPACE_NEW_ORDER_WEBHOOK_URL =
-
-  /* GET home page. */
-  router.get('/', (req, res) => {
-    res.render('index', { title: 'Express' });
-  });
+/* GET home page. */
+router.get('/', (req, res) => {
+  res.render('index', { title: 'Express' });
+});
 
 /* Testing Route */
 router.get('/test', (req, res) => {
@@ -34,111 +14,27 @@ router.get('/test', (req, res) => {
   console.log('test');
 });
 
-router.post(
-  '/new-order',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
-    let event;
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-    // Make sure this is a Stripe event
-    if (endpointSecret) {
-      const signature = req.headers['stripe-signature'];
-      try {
-        event = stripe.webhooks.constructEvent(
-          req.body,
-          signature,
-          endpointSecret,
-        );
-      } catch (err) {
-        console.log(
-          `:warning: Webhook signature verification failed.`,
-          err.message,
-        );
-        return res.sendStatus(400);
-      }
+router.post('/collection-picture', upload.single("image"), async (req, res) => {
+  try {
+    const orderId = req.body.orderId;
+    const buffer = req.file?.buffer; // Buffer with file bytes
+    const mimetype = req.file?.mimetype;
+    // await putToS3({ key: `orders/${orderId}/${req.file?.originalname}`, body: buffer, contentType: mimetype });
+    console.log(orderId, buffer, mimetype);
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        console.log(event);
-        const eventData = event.data.object;
-        const customerData = eventData.customer_details;
-        const customerPhone = customerData.phone.replaceAll(' ', '');
-        const customerName = customerData.name;
-        const customerAddress = stringifyAddressObject(customerData.address);
-        const additionalInstructions =
-          eventData.custom_fields.find(
-            (field) => field.key === 'additional_instructions',
-          )?.text?.value || 'NA';
-        const orderData = eventData.metadata;
-        const orderKnives = orderData?.knives || 0;
-        const orderRepairs = orderData?.repairs || 0;
-        const orderCustom = orderData?.custom || 0;
-        const orderTotal = eventData?.amount_total / 100;
-        const orderConstants = await getOrderConstants();
-        const formattedPickupDate = formatDate(orderConstants.pickupDate);
-        const formattedDeliveryDate = formatDate(orderConstants.deliveryDate);
-
-        // If the order is custom, we don't want to create a new order
-        if (orderCustom > 0) {
-          break;
-        }
-
-        const customerBody = {
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress,
-        };
-
-        let customerId = await getNotionCustomerIdByPhone(customerPhone);
-
-        if (customerId) {
-          await updateNotionCustomerAddress(customerId, customerBody.address);
-          await updateNotionCustomer180DayFollowUp(customerId, false);
-          await clearNotionCustomerReminderDate(customerId);
-        } else {
-          const customer = await insertNotionCustomer(customerBody);
-          customerId = customer.id;
-        }
-
-        const orderBody = {
-          knives: parseInt(orderKnives),
-          repairs: parseInt(orderRepairs),
-          orderTotal: parseFloat(orderTotal),
-          note: additionalInstructions,
-          customerId: customerId,
-          orderGroup: orderConstants.orderGroup,
-          currentOrder: orderConstants.currentOrder,
-          pickupDate: orderConstants.pickupDate,
-          deliveryDate: orderConstants.deliveryDate,
-        };
-        await insertNotionOrder(orderBody);
-
-        const botspaceBody = {
-          name: customerName,
-          phone: customerPhone.replaceAll(' ', ''),
-          address: customerAddress,
-          note: additionalInstructions,
-          orderNumber: getNewOrderNumber(
-            orderConstants.orderGroup,
-            orderConstants.currentOrder,
-          ),
-          pickupDate: formattedPickupDate,
-          deliveryDate: formattedDeliveryDate,
-          timing: orderConstants.timing,
-        };
-        await fetchBotspace(BOTSPACE_NEW_ORDER_WEBHOOK_URL, botspaceBody);
-
-        const newOrderNotification = createNewOrderNotificationMessage(botspaceBody);
-        await sendMessageToTelegramNotifications(newOrderNotification);
-
-        break;
-
-      }
-    }
-
-    res.json({ received: true });
-  },
-);
+    return res.json({
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err?.message ?? "Upload failed" });
+  }
+})
 
 export default router;

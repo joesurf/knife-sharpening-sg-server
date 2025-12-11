@@ -8,6 +8,7 @@ import cors from 'cors';
 import indexRouter from './routes/index.js';
 import notionRouter from './routes/notion.js';
 import analyticsRouter from './routes/analytics.js';
+import stripeRouter from './routes/stripe.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
@@ -52,14 +53,15 @@ app.use(cors());
 
 // Has to be placed before express.json()
 // Stripe needs the raw body instead of JSON
-app.use('/', indexRouter);
+app.use('/stripe', express.raw({ type: 'application/json' }), stripeRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/notion', express.raw({ type: 'application/json' }), notionRouter);
+app.use('/', indexRouter);
+app.use('/notion', notionRouter);
 app.use('/analytics', analyticsRouter);
 
 cron.schedule(
