@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors from 'cors';
 import indexRouter from './routes/index.js';
-import botspaceRouter from './routes/botspace.js';
+import notionRouter from './routes/notion.js';
 import analyticsRouter from './routes/analytics.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -52,14 +52,14 @@ app.use(cors());
 
 // Has to be placed before express.json()
 // Stripe needs the raw body instead of JSON
-app.use('/botspace', express.raw({ type: 'application/json' }), botspaceRouter);
+app.use('/', indexRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/notion', express.raw({ type: 'application/json' }), notionRouter);
 app.use('/analytics', analyticsRouter);
 
 cron.schedule(
@@ -139,7 +139,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
