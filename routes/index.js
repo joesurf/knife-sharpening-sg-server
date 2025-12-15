@@ -3,6 +3,7 @@ import multer from 'multer';
 import { putToS3 } from '../utils/aws_helper.ts'
 import { sendMessageToTelegramNotifications, createCollectionNotificationMessage, createDeliveryNotificationMessage } from '../utils/telegram_helper.js';
 import { sendCollectedMessage, sendDeliveredMessage } from '../utils/botspace_helper.js';
+import { getNotionOrderIdByOrderNumber, updateNotionOrderCollected, updateNotionOrderDelivered } from '../utils/notion_helper.js';
 
 const router = express.Router();
 
@@ -25,6 +26,9 @@ router.post('/collection-picture', upload.single("image"), async (req, res) => {
     const mimetype = req.file?.mimetype;
     const imageUrl = await putToS3({ key: `orders/${orderId}/collection/${req.file?.originalname}`, body: buffer, contentType: mimetype });
 
+    getNotionOrderIdByOrderNumber(orderId).then((orderId) => {
+      updateNotionOrderCollected(orderId, true);
+    });
     sendMessageToTelegramNotifications(createCollectionNotificationMessage(orderId, imageUrl));
     sendCollectedMessage(orderId, imageUrl);
 
@@ -48,8 +52,11 @@ router.post('/delivery-picture', upload.single("image"), async (req, res) => {
     const mimetype = req.file?.mimetype;
     const imageUrl = await putToS3({ key: `orders/${orderId}/delivery/${req.file?.originalname}`, body: buffer, contentType: mimetype });
 
-    sendMessageToTelegramNotifications(createDeliveryNotificationMessage(orderId, imageUrl));
-    sendDeliveredMessage(orderId, imageUrl);
+    getNotionOrderIdByOrderNumber(orderId).then((orderId) => {
+      updateNotionOrderDelivered(orderId, true);
+    });
+    // sendMessageToTelegramNotifications(createDeliveryNotificationMessage(orderId, imageUrl));
+    // sendDeliveredMessage(orderId, imageUrl);
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
