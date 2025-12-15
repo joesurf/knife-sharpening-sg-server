@@ -87,3 +87,12 @@ ${orderId} has been collected.
 
   return message;
 };
+
+export const createDeliveryNotificationMessage = (orderId, imageUrl) => {
+  const message = `
+${orderId} has been delivered.
+- Image: ${imageUrl}
+  `
+
+  return message;
+};
