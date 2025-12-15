@@ -1,5 +1,8 @@
 import express from 'express';
 import multer from 'multer';
+import { putToS3 } from '../utils/aws_helper.ts'
+import { sendMessageToTelegramNotifications, createCollectionNotificationMessage } from '../utils/telegram_helper.js';
+import { sendCollectedMessage } from '../utils/botspace_helper.js';
 
 const router = express.Router();
 
@@ -11,7 +14,6 @@ router.get('/', (req, res) => {
 /* Testing Route */
 router.get('/test', (req, res) => {
   res.render('index', { title: 'Test' });
-  console.log('test');
 });
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -21,8 +23,10 @@ router.post('/collection-picture', upload.single("image"), async (req, res) => {
     const orderId = req.body.orderId;
     const buffer = req.file?.buffer; // Buffer with file bytes
     const mimetype = req.file?.mimetype;
-    // await putToS3({ key: `orders/${orderId}/${req.file?.originalname}`, body: buffer, contentType: mimetype });
-    console.log(orderId, buffer, mimetype);
+    const imageUrl = await putToS3({ key: `orders/${orderId}/collection/${req.file?.originalname}`, body: buffer, contentType: mimetype });
+
+    sendMessageToTelegramNotifications(createCollectionNotificationMessage(orderId, imageUrl));
+    sendCollectedMessage(orderId, imageUrl);
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
