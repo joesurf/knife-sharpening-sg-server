@@ -55,8 +55,8 @@ router.post('/delivery-picture', upload.single("image"), async (req, res) => {
     getNotionOrderIdByOrderNumber(orderId).then((orderId) => {
       updateNotionOrderDelivered(orderId, true);
     });
-    // sendMessageToTelegramNotifications(createDeliveryNotificationMessage(orderId, imageUrl));
-    // sendDeliveredMessage(orderId, imageUrl);
+    sendMessageToTelegramNotifications(createDeliveryNotificationMessage(orderId, imageUrl));
+    sendDeliveredMessage(orderId, imageUrl);
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
