@@ -1,6 +1,6 @@
-import { 
-  getOrderConstants, 
-  getOrders, 
+import {
+  getOrderConstants,
+  getOrders,
   getCustomers180DaysOld,
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
@@ -13,11 +13,17 @@ const BOTSPACE_COLLECTION_WEBHOOK_URL =
 const BOTSPACE_DELIVERY_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ecb2d0f881d90a0ce76bcc';
 
-const BOTSPACE_180DAY_WEBHOOK_URL = 
+const BOTSPACE_180DAY_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ef568abf1d5ae4083e5a36';
 
-const BOTSPACE_REMINDER_WEBHOOK_URL = 
+const BOTSPACE_REMINDER_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68eff0c8bf1d5ae40860a005';
+
+const BOTSPACE_COLLECTED_WEBHOOK_URL =
+  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/693a92b06b270d7d55c66f9d';
+
+const BOTSPACE_DELIVERED_WEBHOOK_URL =
+  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/69400ec469cb724b1ac191ad';
 
 const fetchBotspace = (url, body) => {
   return fetch(url, {
@@ -98,10 +104,46 @@ const sendRequestedReminder = async () => {
   })
 };
 
-export { 
-  fetchBotspace, 
-  sendCollectionReminder, 
-  sendDeliveryReminder, 
-  send180DayReminder, 
+const sendCollectedMessage = async (orderId, imageUrl) => {
+  const orderConstants = await getOrderConstants();
+  const orders = await getOrders(orderConstants.orderGroup, false);
+  const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
+  console.log(customer);
+  const customerBody = {
+    id: customer.id,
+    name: customer.properties['Customer Name'].rollup.array[0].title[0]
+      .plain_text,
+    phone: customer.properties[
+      'Customer Phone'
+    ].rollup.array[0].phone_number.replaceAll(' ', ''),
+    imageUrl: imageUrl,
+  }
+  fetchBotspace(BOTSPACE_COLLECTED_WEBHOOK_URL, customerBody);
+};
+
+const sendDeliveredMessage = async (orderId, imageUrl) => {
+  const orderConstants = await getOrderConstants();
+  const orders = await getOrders(orderConstants.orderGroup, false);
+  const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
+  console.log(customer);
+  const customerBody = {
+    id: customer.id,
+    name: customer.properties['Customer Name'].rollup.array[0].title[0]
+      .plain_text,
+    phone: customer.properties[
+      'Customer Phone'
+    ].rollup.array[0].phone_number.replaceAll(' ', ''),
+    imageUrl: imageUrl,
+  }
+  fetchBotspace(BOTSPACE_DELIVERED_WEBHOOK_URL, customerBody);
+};
+
+export {
+  fetchBotspace,
+  sendCollectionReminder,
+  sendDeliveryReminder,
+  send180DayReminder,
   sendRequestedReminder,
+  sendCollectedMessage,
+  sendDeliveredMessage,
 };

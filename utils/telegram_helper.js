@@ -11,10 +11,10 @@ export const sendMessageToTelegramNotifications = async (message) => {
         message_thread_id: process.env.TELEGRAM_THREAD_ID,
       },
     )
-    .then(function (response) {
+    .then(function(response) {
       console.log(response);
     })
-    .catch(function (error) {
+    .catch(function(error) {
       console.log(error);
     });
 };
@@ -33,29 +33,29 @@ export const createMessageFromOrders = async () => {
     sharpenerMessage = `
 *Order Summary for ${orderConstants.pickupDate} to ${orderConstants.deliveryDate}*
     ${orders
-      .map(
-        (order) =>
-          `
+        .map(
+          (order) =>
+            `
 Order ${order.properties.ID.title[0].text.content.replace(`${orderConstants.orderGroup}O`, '')}:
 ${order.properties.Knifes.number} x sharpen
 ${order.properties.Repairs.number} x repair
           `,
-      )
-      .join('')}
+        )
+        .join('')}
     `;
     driverMessage = `
 *Order Summary for ${orderConstants.pickupDate} to ${orderConstants.deliveryDate}*
     ${orders
-      .map(
-        (order) =>
-          `
+        .map(
+          (order) =>
+            `
 Order ${order.properties.ID.title[0].text.content.replace(`${orderConstants.orderGroup}O`, '')}:
 ${order.properties['Customer Address'].rollup.array[0].rich_text[0].plain_text}
 ${order.properties['Customer Phone'].rollup.array[0].phone_number}
 - ${order.properties.Note.rich_text[0].plain_text}
           `,
-      )
-      .join('')}
+        )
+        .join('')}
 Knife Sharpener (DROP OFF):
 Blk 308B Ang Mo Kio Ave 1 #25-407 S562308
 
@@ -74,6 +74,24 @@ export const createNewOrderNotificationMessage = (orderInfo) => {
 ${orderInfo.orderNumber}: ${orderInfo.name} (${orderInfo.phone}) has placed an order.
 - Address: ${orderInfo.address}
 - Note: ${orderInfo.note}
+  `
+
+  return message;
+};
+
+export const createCollectionNotificationMessage = (orderId, imageUrl) => {
+  const message = `
+${orderId} has been collected.
+- Image: ${imageUrl}
+  `
+
+  return message;
+};
+
+export const createDeliveryNotificationMessage = (orderId, imageUrl) => {
+  const message = `
+${orderId} has been delivered.
+- Image: ${imageUrl}
   `
 
   return message;

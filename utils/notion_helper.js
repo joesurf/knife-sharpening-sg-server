@@ -78,6 +78,59 @@ export const updateNotionCustomer180DayFollowUp = async (customerId, check) => {
   }
 };
 
+export const getNotionOrderIdByOrderNumber = async (orderNumber) => {
+  try {
+    const response = await notion.dataSources.query({
+      data_source_id: ORDERS_DATASOURCE_ID,
+      filter: {
+        and: [
+          {
+            property: 'ID',
+            title: {
+              equals: orderNumber,
+            }
+          }
+        ],
+      },
+      page_size: 1,
+    });
+
+    return response.results?.[0]?.id;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+};
+
+export const updateNotionOrderCollected = async (orderId, check) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: orderId,
+      properties: {
+        'Collected': { checkbox: check },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+};
+
+export const updateNotionOrderDelivered = async (orderId, check) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: orderId,
+      properties: {
+        'Delivered': { checkbox: check },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+};
+
 export const insertNotionCustomer = async (customer) => {
   try {
     const response = await notion.pages.create({
