@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { putToS3 } from '../utils/aws_helper.ts'
+import { putToS3 } from '../utils/aws_helper.js'
 import { sendMessageToTelegramNotifications, createCollectionNotificationMessage, createDeliveryNotificationMessage } from '../utils/telegram_helper.js';
 import { sendCollectedMessage, sendDeliveredMessage } from '../utils/botspace_helper.js';
 import { getNotionOrderIdByOrderNumber, updateNotionOrderCollected, updateNotionOrderDelivered } from '../utils/notion_helper.js';
