@@ -39,25 +39,17 @@ export const createMessageFromOrders = async () => {
 Order ${order.properties.ID.title[0].text.content.replace(`${orderConstants.orderGroup}O`, '')}:
 ${order.properties.Knifes.number} x sharpen
 ${order.properties.Repairs.number} x repair
+- ${order.properties['Sharpening Note'].rich_text[0]?.plain_text || 'NA'}
           `,
         )
         .join('')}
     `;
     driverMessage = `
-*Order Summary for ${orderConstants.pickupDate} to ${orderConstants.deliveryDate}*
-    ${orders
-        .map(
-          (order) =>
-            `
-Order ${order.properties.ID.title[0].text.content.replace(`${orderConstants.orderGroup}O`, '')}:
-${order.properties['Customer Address'].rollup.array[0].rich_text[0].plain_text}
-${order.properties['Customer Phone'].rollup.array[0].phone_number}
-- ${order.properties.Note.rich_text[0].plain_text}
-          `,
-        )
-        .join('')}
-Knife Sharpener (DROP OFF):
-Blk 308B Ang Mo Kio Ave 1 #25-407 S562308
+*Drivers*
+
+Drivers are using the dashboard. 
+
+Remember to assign them the orders in Notion, and then ask Sean to pay them this amount.
 
 Pricing
 Collection – $${orders.length * 8}
