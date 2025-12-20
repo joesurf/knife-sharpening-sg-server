@@ -12,7 +12,7 @@ export const sendMessageToTelegramNotifications = async (message) => {
       },
     )
     .then(function(response) {
-      console.log(response);
+      console.log('telegram message successfully sent');
     })
     .catch(function(error) {
       console.log(error);

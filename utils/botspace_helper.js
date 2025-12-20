@@ -109,16 +109,21 @@ const sendCollectedMessage = async (orderId, imageUrl) => {
   const orders = await getOrders(orderConstants.driverOrderGroup, false);
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
-  const customerBody = {
-    id: customer.id,
-    name: customer.properties['Customer Name'].rollup.array[0].title[0]
-      .plain_text,
-    phone: customer.properties[
-      'Customer Phone'
-    ].rollup.array[0].phone_number.replaceAll(' ', ''),
-    imageUrl: imageUrl,
+
+  if (customer) {
+    const customerBody = {
+      id: customer.id,
+      name: customer.properties['Customer Name'].rollup.array[0].title[0]
+        .plain_text,
+      phone: customer.properties[
+        'Customer Phone'
+      ].rollup.array[0].phone_number.replaceAll(' ', ''),
+      imageUrl: imageUrl,
+    }
+    fetchBotspace(BOTSPACE_COLLECTED_WEBHOOK_URL, customerBody);
+  } else {
+    console.log(`Unable to find customer with order ID ${orderId}`);
   }
-  fetchBotspace(BOTSPACE_COLLECTED_WEBHOOK_URL, customerBody);
 };
 
 const sendDeliveredMessage = async (orderId, imageUrl) => {
@@ -126,16 +131,21 @@ const sendDeliveredMessage = async (orderId, imageUrl) => {
   const orders = await getOrders(orderConstants.driverOrderGroup, false);
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
-  const customerBody = {
-    id: customer.id,
-    name: customer.properties['Customer Name'].rollup.array[0].title[0]
-      .plain_text,
-    phone: customer.properties[
-      'Customer Phone'
-    ].rollup.array[0].phone_number.replaceAll(' ', ''),
-    imageUrl: imageUrl,
+
+  if (customer) {
+    const customerBody = {
+      id: customer.id,
+      name: customer.properties['Customer Name'].rollup.array[0].title[0]
+        .plain_text,
+      phone: customer.properties[
+        'Customer Phone'
+      ].rollup.array[0].phone_number.replaceAll(' ', ''),
+      imageUrl: imageUrl,
+    }
+    fetchBotspace(BOTSPACE_DELIVERED_WEBHOOK_URL, customerBody);
+  } else {
+    console.log(`Unable to find customer with order ID ${orderId}`);
   }
-  fetchBotspace(BOTSPACE_DELIVERED_WEBHOOK_URL, customerBody);
 };
 
 export {
