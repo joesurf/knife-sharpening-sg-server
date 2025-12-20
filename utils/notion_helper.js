@@ -264,6 +264,7 @@ export const getOrderConstants = async () => {
       previousPickupDate: response.results[0].properties['Previous Pickup Date'].date.start,
       previousDeliveryDate: response.results[0].properties['Previous Delivery Date'].date.start,
       orderGroup: response.results[0].properties['Order Group'].number,
+      driverOrderGroup: response.results[0].properties['Driver Order Group'].number,
       currentOrder: response.results[0].properties['Current Order'].number,
       timing: response.results[0].properties['Timing'].rich_text[0].plain_text,
     };

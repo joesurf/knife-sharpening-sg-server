@@ -106,7 +106,7 @@ const sendRequestedReminder = async () => {
 
 const sendCollectedMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders(orderConstants.orderGroup, false);
+  const orders = await getOrders(orderConstants.driverOrderGroup, false);
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
   const customerBody = {
@@ -123,7 +123,7 @@ const sendCollectedMessage = async (orderId, imageUrl) => {
 
 const sendDeliveredMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders(orderConstants.orderGroup, false);
+  const orders = await getOrders(orderConstants.driverOrderGroup, false);
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
   const customerBody = {
