@@ -343,6 +343,20 @@ export const updateOrderConstantsToNextOrderGroup = async () => {
   });
 };
 
+export const updateDriverOrderConstantsToNextOrderGroup = async () => {
+  const orderConstants = await getOrderConstants();
+  const newOrderGroup = orderConstants.driverOrderGroup + 1;
+
+  await notion.pages.update({
+    page_id: ORDER_CONSTANTS_PAGE_ID,
+    properties: {
+      'Driver Order Group': {
+        number: newOrderGroup,
+      }
+    },
+  });
+};
+
 export const getCustomers180DaysOld = async () => {
   try {
     const response = await notion.dataSources.query({

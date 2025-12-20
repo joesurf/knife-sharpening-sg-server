@@ -21,6 +21,7 @@ import {
 } from './utils/botspace_helper.js';
 import {
   updateOrderConstantsToNextOrderGroup,
+  updateDriverOrderConstantsToNextOrderGroup,
   isDeliveryTomorrow,
   isPickupTomorrow,
 } from './utils/notion_helper.js';
@@ -129,6 +130,17 @@ cron.schedule(
     );
     send180DayReminder();
     sendRequestedReminder();
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '0 0 * * 1',
+  async () => {
+    console.log('[CRON] Running Monday Driver Order Constants Update at Midnight');
+    updateDriverOrderConstantsToNextOrderGroup();
   },
   {
     timezone: 'Asia/Singapore',
