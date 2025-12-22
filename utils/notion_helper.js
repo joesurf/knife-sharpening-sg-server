@@ -223,6 +223,15 @@ export const insertNotionOrder = async (order) => {
             },
           ],
         },
+        'Sharpening Note': {
+          rich_text: [
+            {
+              text: {
+                content: order.sharpeningNote,
+              },
+            },
+          ],
+        },
         Paid: {
           select: {
             name: 'Paid',

@@ -59,6 +59,7 @@ router.post(
           eventData.custom_fields.find(
             (field) => field.key === 'additional_instructions',
           )?.text?.value || 'NA';
+        const sharpeningNote = 'NA';
         const orderData = eventData.metadata;
         const orderKnives = orderData?.knives || 0;
         const orderRepairs = orderData?.repairs || 0;
@@ -95,6 +96,7 @@ router.post(
           repairs: parseInt(orderRepairs),
           orderTotal: parseFloat(orderTotal),
           note: additionalInstructions,
+          sharpeningNote: sharpeningNote,
           customerId: customerId,
           orderGroup: orderConstants.orderGroup,
           currentOrder: orderConstants.currentOrder,
