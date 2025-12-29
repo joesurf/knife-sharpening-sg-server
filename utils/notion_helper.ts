@@ -297,33 +297,41 @@ export const insertNotionOrder = async (order) => {
   }
 };
 
-export const getOrderConstants = async () => {
-  try {
-    const response: QueryDataSourceResponse = await notion.dataSources.query({
-      data_source_id: ORDER_CONSTANTS_DATASOURCE_ID,
-    });
-    const first = response.results[0];
+type OrderConstants = {
+  pickupDate: string;
+  deliveryDate: string;
+  previousPickupDate: string;
+  previousDeliveryDate: string;
+  orderGroup: number;
+  driverOrderGroup: number;
+  currentOrder: number;
+  timing: string;
+}
 
-    if (!first || first.object !== "page" || !("properties" in first)) {
-      throw new Error("Order constants row is not a full PageObjectResponse");
-    }
+export const getOrderConstants = async (): Promise<OrderConstants> => {
+  const response: QueryDataSourceResponse = await notion.dataSources.query({
+    data_source_id: ORDER_CONSTANTS_DATASOURCE_ID,
+  });
+  const first = response.results[0];
 
-    const constantsResponseProperties = first.properties;
-
-    const constants = {
-      pickupDate: getTextFromNotionProperty(constantsResponseProperties['Pickup Date']),
-      deliveryDate: getTextFromNotionProperty(constantsResponseProperties['Delivery Date']),
-      previousPickupDate: getTextFromNotionProperty(constantsResponseProperties['Previous Pickup Date']),
-      previousDeliveryDate: getTextFromNotionProperty(constantsResponseProperties['Previous Delivery Date']),
-      orderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Order Group'])),
-      driverOrderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Driver Order Group'])),
-      currentOrder: Number(getTextFromNotionProperty(constantsResponseProperties['Current Order'])),
-      timing: getTextFromNotionProperty(constantsResponseProperties['Timing']),
-    };
-    return constants;
-  } catch (error) {
-    console.error('An error occurred:', error.message);
+  if (!first || first.object !== "page" || !("properties" in first)) {
+    throw new Error("Order constants row is not a full PageObjectResponse");
   }
+
+  const constantsResponseProperties = first.properties;
+
+  const constants: OrderConstants = {
+    pickupDate: getTextFromNotionProperty(constantsResponseProperties['Pickup Date']) || 'NA',
+    deliveryDate: getTextFromNotionProperty(constantsResponseProperties['Delivery Date']) || 'NA',
+    previousPickupDate: getTextFromNotionProperty(constantsResponseProperties['Previous Pickup Date']) || 'NA',
+    previousDeliveryDate: getTextFromNotionProperty(constantsResponseProperties['Previous Delivery Date']) || 'NA',
+    orderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Order Group'])),
+    driverOrderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Driver Order Group'])),
+    currentOrder: Number(getTextFromNotionProperty(constantsResponseProperties['Current Order'])),
+    timing: getTextFromNotionProperty(constantsResponseProperties['Timing']) || 'NA',
+  };
+
+  return constants;
 };
 
 type GetOrdersParams = {
