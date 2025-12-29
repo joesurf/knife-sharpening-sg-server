@@ -1,7 +1,7 @@
 import { Client } from '@notionhq/client';
 import { getNewOrderNumber } from './utils.js';
 import { parseISO, addWeeks, addDays, format } from 'date-fns';
-import { type QueryDataSourceResponse, type PageObjectResponse } from "@notionhq/client"
+import { type QueryDataSourceResponse, type PageObjectResponse, type QueryDataSourceParameters } from "@notionhq/client"
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -326,9 +326,18 @@ export const getOrderConstants = async () => {
   }
 };
 
-export const getOrders = async (orderGroup, includeUrgent = false) => {
+type GetOrdersParams = {
+  orderGroup: number;
+  driverId?: string;
+  includeUrgent?: boolean;
+};
+
+export const getOrders = async ({ orderGroup, driverId, includeUrgent = false }: GetOrdersParams) => {
   try {
-    const filters = [
+    type FilterUnion = NonNullable<QueryDataSourceParameters['filter']>;
+    type AndArray = Extract<FilterUnion, { and: unknown }>['and'];
+
+    const filters: AndArray = [
       { property: 'ID', rich_text: { contains: `${orderGroup}O` } },
     ];
 
@@ -339,6 +348,19 @@ export const getOrders = async (orderGroup, includeUrgent = false) => {
       });
     }
 
+    if (driverId) {
+      filters.push({
+        property: 'Driver ID',
+        rollup: {
+          any: {
+            "rich_text": {
+              "contains": driverId,
+            }
+          },
+        },
+      })
+    }
+
     const response = await notion.dataSources.query({
       data_source_id: ORDERS_DATASOURCE_ID,
       filter: { and: filters },
@@ -346,7 +368,11 @@ export const getOrders = async (orderGroup, includeUrgent = false) => {
     });
     return response.results;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An error occurred:', error);
+    }
   }
 };
 

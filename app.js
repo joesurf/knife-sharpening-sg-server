@@ -24,7 +24,7 @@ import {
   updateDriverOrderConstantsToNextOrderGroup,
   isDeliveryTomorrow,
   isPickupTomorrow,
-} from './utils/notion_helper.js';
+} from './utils/notion_helper.ts';
 import {
   createMessageFromOrders,
   sendMessageToTelegramNotifications,

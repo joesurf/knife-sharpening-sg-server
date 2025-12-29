@@ -13,7 +13,7 @@ import {
   updateNotionCustomerAddress,
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
-} from '../utils/notion_helper.js';
+} from '../utils/notion_helper.ts';
 import { fetchBotspace } from '../utils/botspace_helper.js';
 import { createNewOrderNotificationMessage, sendMessageToTelegramNotifications } from '../utils/telegram_helper.js';
 

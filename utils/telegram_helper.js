@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getOrderConstants, getOrders } from './notion_helper.js';
+import { getOrderConstants, getOrders } from './notion_helper.ts';
 
 export const sendMessageToTelegramNotifications = async (message) => {
   await axios
@@ -21,7 +21,7 @@ export const sendMessageToTelegramNotifications = async (message) => {
 
 export const createMessageFromOrders = async () => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders(orderConstants.orderGroup);
+  const orders = await getOrders({ orderGroup: orderConstants.orderGroup });
 
   let sharpenerMessage;
   let driverMessage;

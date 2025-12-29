@@ -4,7 +4,7 @@ import {
 } from '../utils/utils.js';
 import {
   getOrderConstants,
-} from '../utils/notion_helper.js';
+} from '../utils/notion_helper.ts';
 
 const router = express.Router();
 

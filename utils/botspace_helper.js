@@ -5,7 +5,7 @@ import {
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
   getCustomersWithReminderDates,
-} from './notion_helper.js';
+} from './notion_helper.ts';
 
 const BOTSPACE_COLLECTION_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e8a0a0f881d90a0c73f941';
@@ -45,7 +45,7 @@ const fetchBotspace = (url, body) => {
 const sendCollectionReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
-  const orders = await getOrders(orderConstants.orderGroup, false);
+  const orders = await getOrders({ orderGroup: orderConstants.orderGroup, includeUrgent: false });
   orders.forEach(async (order) => {
     const orderBody = {
       name: order.properties['Customer Name'].rollup.array[0].title[0]
@@ -54,6 +54,7 @@ const sendCollectionReminder = async () => {
         'Customer Phone'
       ].rollup.array[0].phone_number.replaceAll(' ', ''),
       timing: timing,
+      address: order.properties['Customer Address'].rollup.array[0].rich_text[0].plain_text,
     };
     await fetchBotspace(BOTSPACE_COLLECTION_WEBHOOK_URL, orderBody);
   });
@@ -64,7 +65,7 @@ const sendDeliveryReminder = async () => {
   const timing = orderConstants.timing;
   // This goes out on Saturday. The order constants are updated on Friday. So we need to go back one order group
   const previousOrderGroup = orderConstants.orderGroup - 1;
-  const orders = await getOrders(previousOrderGroup, false);
+  const orders = await getOrders({ orderGroup: previousOrderGroup, includeUrgent: false });
   orders.forEach(async (order) => {
     const orderBody = {
       name: order.properties['Customer Name'].rollup.array[0].title[0]
@@ -106,7 +107,7 @@ const sendRequestedReminder = async () => {
 
 const sendCollectedMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders(orderConstants.driverOrderGroup, false);
+  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup, includeUrgent: false });
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
 
@@ -128,7 +129,7 @@ const sendCollectedMessage = async (orderId, imageUrl) => {
 
 const sendDeliveredMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders(orderConstants.driverOrderGroup, false);
+  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup, includeUrgent: false });
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
 
