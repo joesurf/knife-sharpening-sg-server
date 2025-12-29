@@ -29,6 +29,7 @@ import {
   createMessageFromOrders,
   sendMessageToTelegramNotifications,
 } from './utils/telegram_helper.js';
+import { runStabilityTestOrderDetails } from './utils/stability_tests.ts';
 
 const app = express();
 
@@ -70,6 +71,7 @@ cron.schedule(
   async () => {
     if (await isPickupTomorrow()) {
       console.log('[CRON] Running Friday Pickup Reminder at 6pm');
+      runStabilityTestOrderDetails();
       sendCollectionReminder();
     }
   },
