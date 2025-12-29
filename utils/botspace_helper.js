@@ -5,6 +5,7 @@ import {
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
   getCustomersWithReminderDates,
+  formatOrders,
 } from './notion_helper.ts';
 
 const BOTSPACE_COLLECTION_WEBHOOK_URL =
@@ -46,15 +47,13 @@ const sendCollectionReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
   const orders = await getOrders({ orderGroup: orderConstants.orderGroup, includeUrgent: false });
-  orders.forEach(async (order) => {
+  const formattedOrders = formatOrders(orders);
+  formattedOrders.forEach(async (order) => {
     const orderBody = {
-      name: order.properties['Customer Name'].rollup.array[0].title[0]
-        .plain_text,
-      phone: order.properties[
-        'Customer Phone'
-      ].rollup.array[0].phone_number.replaceAll(' ', ''),
+      name: order.customerName,
+      phone: order.whatsApp,
       timing: timing,
-      address: order.properties['Customer Address'].rollup.array[0].rich_text[0].plain_text,
+      address: order.address,
     };
     await fetchBotspace(BOTSPACE_COLLECTION_WEBHOOK_URL, orderBody);
   });

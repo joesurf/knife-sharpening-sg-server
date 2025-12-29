@@ -57,7 +57,7 @@ export function getTextFromNotionProperty(
       }
 
       if (item.type === "phone_number") {
-        return item.phone_number ?? undefined;
+        return item.phone_number?.replace(' ', '') ?? undefined;
       }
 
       if (item.type === "number") {
@@ -91,7 +91,7 @@ export const isDeliveryTomorrow = async () => {
   return tomorrow === deliveryDate;
 };
 
-export const getNotionCustomerIdByPhone = async (customerPhone) => {
+export const getNotionCustomerIdByPhone = async (customerPhone: string) => {
   try {
     const response = await notion.dataSources.query({
       data_source_id: CUSTOMERS_DATASOURCE_ID,
@@ -110,7 +110,11 @@ export const getNotionCustomerIdByPhone = async (customerPhone) => {
 
     return response.results?.[0]?.id;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
@@ -125,11 +129,15 @@ export const updateNotionCustomerAddress = async (customerId: string, address: s
 
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const updateNotionCustomer180DayFollowUp = async (customerId, check) => {
+export const updateNotionCustomer180DayFollowUp = async (customerId: string, check: boolean) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,
@@ -140,11 +148,15 @@ export const updateNotionCustomer180DayFollowUp = async (customerId, check) => {
 
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const getNotionOrderIdByOrderNumber = async (orderNumber) => {
+export const getNotionOrderIdByOrderNumber = async (orderNumber: string) => {
   try {
     const response = await notion.dataSources.query({
       data_source_id: ORDERS_DATASOURCE_ID,
@@ -163,11 +175,15 @@ export const getNotionOrderIdByOrderNumber = async (orderNumber) => {
 
     return response.results?.[0]?.id;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const updateNotionOrderCollected = async (orderId, check) => {
+export const updateNotionOrderCollected = async (orderId: string, check: boolean) => {
   try {
     const response = await notion.pages.update({
       page_id: orderId,
@@ -178,11 +194,15 @@ export const updateNotionOrderCollected = async (orderId, check) => {
 
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const updateNotionOrderDelivered = async (orderId, check) => {
+export const updateNotionOrderDelivered = async (orderId: string, check: boolean) => {
   try {
     const response = await notion.pages.update({
       page_id: orderId,
@@ -193,11 +213,21 @@ export const updateNotionOrderDelivered = async (orderId, check) => {
 
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const insertNotionCustomer = async (customer) => {
+type Customer = {
+  name: string;
+  phone: string;
+  address: string;
+};
+
+export const insertNotionCustomer = async (customer: Customer) => {
   try {
     const response = await notion.pages.create({
       parent: {
@@ -234,11 +264,28 @@ export const insertNotionCustomer = async (customer) => {
     });
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const insertNotionOrder = async (order) => {
+type Order = {
+  knives: number;
+  repairs: number;
+  orderTotal: number;
+  note: string;
+  sharpeningNote: string;
+  customerId: string;
+  orderGroup: number;
+  currentOrder: number;
+  pickupDate: string;
+  deliveryDate: string;
+};
+
+export const insertNotionOrder = async (order: Order) => {
   try {
     const newOrderNumber = getNewOrderNumber(
       order.orderGroup,
@@ -324,7 +371,11 @@ export const insertNotionOrder = async (order) => {
     });
     return response;
   } catch (error) {
-    console.error('An error occurred:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
@@ -499,7 +550,11 @@ export const getCustomers180DaysOld = async () => {
 
     return response.results;
   } catch (error) {
-    console.error('getCustomers180DaysOld error:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
@@ -526,11 +581,15 @@ export const getCustomersWithReminderDates = async () => {
 
     return response.results;
   } catch (error) {
-    console.error('getCustomersWithReminderDates error:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
 
-export const clearNotionCustomerReminderDate = async (customerId) => {
+export const clearNotionCustomerReminderDate = async (customerId: string) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,
@@ -541,6 +600,45 @@ export const clearNotionCustomerReminderDate = async (customerId) => {
 
     return response;
   } catch (error) {
-    console.error('clearNotionCustomerReminderDate error:', error.message);
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
   }
 };
+
+export function formatOrders(orders: QueryDataSourceResponse["results"]) {
+  return orders
+    .filter((order): order is PageObjectResponse => "properties" in order)
+    .map(formatOrder);
+}
+
+export function formatOrder(order: PageObjectResponse) {
+  const properties = order.properties;
+
+  const pageId = order.id;
+  const orderId = getTextFromNotionProperty(properties["ID"]) ?? "NA";
+  const customerName =
+    getTextFromNotionProperty(properties["Customer Name"]) ?? "NA";
+  const whatsApp =
+    getTextFromNotionProperty(properties["Customer Phone"]) ?? "NA";
+  const address =
+    getTextFromNotionProperty(properties["Customer Address"]) ?? "NA";
+  const note = getTextFromNotionProperty(properties["Note"]) ?? "NA";
+  const collected =
+    getTextFromNotionProperty(properties["Collected"]) === "true";
+  const delivered =
+    getTextFromNotionProperty(properties["Delivered"]) === "true";
+
+  return {
+    pageId,
+    orderId,
+    customerName,
+    whatsApp,
+    address,
+    note,
+    collected,
+    delivered,
+  };
+}
