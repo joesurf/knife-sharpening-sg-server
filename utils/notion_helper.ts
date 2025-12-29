@@ -1,6 +1,7 @@
 import { Client } from '@notionhq/client';
 import { getNewOrderNumber } from './utils.js';
 import { parseISO, addWeeks, addDays, format } from 'date-fns';
+import { type QueryDataSourceResponse, type PageObjectResponse } from "@notionhq/client"
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -10,6 +11,40 @@ const ORDER_CONSTANTS_DATASOURCE_ID = '286b653f-dfd3-800c-adf4-000b46bcc393';
 const ORDERS_DATASOURCE_ID = '9c015ed7-2d42-4689-b036-794ac2ba6295';
 const CUSTOMERS_DATASOURCE_ID = 'e4dcf0cf-c09d-4917-9d2a-b7e1eaedf976';
 const ORDER_CONSTANTS_PAGE_ID = '286b653fdfd380c7a11bc46af8d61357';
+
+export function getTextFromNotionProperty(property: PageObjectResponse['properties']['string']) {
+  const propertyType = property.type;
+
+  if (propertyType === 'title') {
+    return property.title[0].plain_text
+  } else if (propertyType === 'rich_text') {
+    return property.rich_text[0].plain_text
+  } else if (propertyType === 'rollup') {
+    const rollupType = property.rollup.type;
+
+    if (rollupType === 'array') {
+      if (property.rollup.array.length === 0) {
+        return '';
+      }
+
+      const arrayType = property.rollup.array[0].type;
+
+      if (arrayType === 'title') {
+        return property.rollup.array[0].title[0].plain_text;
+      }
+
+      if (arrayType === 'phone_number') {
+        return property.rollup.array[0].phone_number;
+      }
+
+      if (arrayType === 'rich_text') {
+        return property.rollup.array[0].rich_text[0].plain_text;
+      }
+    }
+  } else if (propertyType === 'checkbox') {
+    return property.checkbox.toString();
+  }
+}
 
 export const isPickupTomorrow = async () => {
   const orderConstants = await getOrderConstants();
@@ -264,18 +299,26 @@ export const insertNotionOrder = async (order) => {
 
 export const getOrderConstants = async () => {
   try {
-    const response = await notion.dataSources.query({
+    const response: QueryDataSourceResponse = await notion.dataSources.query({
       data_source_id: ORDER_CONSTANTS_DATASOURCE_ID,
     });
+    const first = response.results[0];
+
+    if (!first || first.object !== "page" || !("properties" in first)) {
+      throw new Error("Order constants row is not a full PageObjectResponse");
+    }
+
+    const constantsResponseProperties = first.properties;
+
     const constants = {
-      pickupDate: response.results[0].properties['Pickup Date'].date.start,
-      deliveryDate: response.results[0].properties['Delivery Date'].date.start,
-      previousPickupDate: response.results[0].properties['Previous Pickup Date'].date.start,
-      previousDeliveryDate: response.results[0].properties['Previous Delivery Date'].date.start,
-      orderGroup: response.results[0].properties['Order Group'].number,
-      driverOrderGroup: response.results[0].properties['Driver Order Group'].number,
-      currentOrder: response.results[0].properties['Current Order'].number,
-      timing: response.results[0].properties['Timing'].rich_text[0].plain_text,
+      pickupDate: getTextFromNotionProperty(constantsResponseProperties['Pickup Date']),
+      deliveryDate: getTextFromNotionProperty(constantsResponseProperties['Delivery Date']),
+      previousPickupDate: getTextFromNotionProperty(constantsResponseProperties['Previous Pickup Date']),
+      previousDeliveryDate: getTextFromNotionProperty(constantsResponseProperties['Previous Delivery Date']),
+      orderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Order Group'])),
+      driverOrderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Driver Order Group'])),
+      currentOrder: Number(getTextFromNotionProperty(constantsResponseProperties['Current Order'])),
+      timing: getTextFromNotionProperty(constantsResponseProperties['Timing']),
     };
     return constants;
   } catch (error) {
