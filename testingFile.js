@@ -1,5 +1,8 @@
 import 'dotenv/config';
 
+// INSTRUCTIONS
+// npx tsx testingFile.js
+
 // import { isPickupTomorrow, isDeliveryTomorrow, getOrderConstants } from './utils/notion_helper.js';
 import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
 
