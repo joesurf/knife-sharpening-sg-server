@@ -12,38 +12,69 @@ const ORDERS_DATASOURCE_ID = '9c015ed7-2d42-4689-b036-794ac2ba6295';
 const CUSTOMERS_DATASOURCE_ID = 'e4dcf0cf-c09d-4917-9d2a-b7e1eaedf976';
 const ORDER_CONSTANTS_PAGE_ID = '286b653fdfd380c7a11bc46af8d61357';
 
-export function getTextFromNotionProperty(property: PageObjectResponse['properties']['string']) {
+type NotionProperty =
+  PageObjectResponse["properties"][string];
+
+export function getTextFromNotionProperty(
+  property: NotionProperty
+): string | undefined {
   const propertyType = property.type;
 
-  if (propertyType === 'title') {
-    return property.title[0].plain_text
-  } else if (propertyType === 'rich_text') {
-    return property.rich_text[0].plain_text
-  } else if (propertyType === 'rollup') {
-    const rollupType = property.rollup.type;
+  if (propertyType === "title") {
+    return property.title[0]?.plain_text;
+  }
 
-    if (rollupType === 'array') {
-      if (property.rollup.array.length === 0) {
-        return '';
-      }
+  if (propertyType === "rich_text") {
+    return property.rich_text[0]?.plain_text;
+  }
 
-      const arrayType = property.rollup.array[0].type;
+  if (propertyType === "number") {
+    return property.number != null
+      ? String(property.number)
+      : undefined;
+  }
 
-      if (arrayType === 'title') {
-        return property.rollup.array[0].title[0].plain_text;
-      }
+  if (propertyType === "date") {
+    return property.date?.start ?? undefined;
+  }
 
-      if (arrayType === 'phone_number') {
-        return property.rollup.array[0].phone_number;
-      }
-
-      if (arrayType === 'rich_text') {
-        return property.rollup.array[0].rich_text[0].plain_text;
-      }
-    }
-  } else if (propertyType === 'checkbox') {
+  if (propertyType === "checkbox") {
     return property.checkbox.toString();
   }
+
+  if (propertyType === "rollup") {
+    const rollup = property.rollup;
+
+    if (rollup.type === "array" && rollup.array.length > 0) {
+      const item = rollup.array[0];
+
+      if (item.type === "title") {
+        return item.title[0]?.plain_text;
+      }
+
+      if (item.type === "rich_text") {
+        return item.rich_text[0]?.plain_text;
+      }
+
+      if (item.type === "phone_number") {
+        return item.phone_number ?? undefined;
+      }
+
+      if (item.type === "number") {
+        return item.number != null
+          ? String(item.number)
+          : undefined;
+      }
+
+      if (item.type === "date") {
+        return item.date?.start ?? undefined;
+      }
+    }
+
+    return undefined;
+  }
+
+  return undefined;
 }
 
 export const isPickupTomorrow = async () => {
@@ -83,7 +114,7 @@ export const getNotionCustomerIdByPhone = async (customerPhone) => {
   }
 };
 
-export const updateNotionCustomerAddress = async (customerId, address) => {
+export const updateNotionCustomerAddress = async (customerId: string, address: string) => {
   try {
     const response = await notion.pages.update({
       page_id: customerId,

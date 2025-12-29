@@ -4,7 +4,10 @@ import {
   createMessageFromOrders,
 } from './utils/telegram_helper.js';
 
-import { isPickupTomorrow, isDeliveryTomorrow } from './utils/notion_helper.ts';
+import { isPickupTomorrow, isDeliveryTomorrow, getOrderConstants } from './utils/notion_helper.ts';
+
+const orderConstants = await getOrderConstants();
+console.log(orderConstants);
 
 if (await isPickupTomorrow()) {
   console.log('It is tomorrow');
