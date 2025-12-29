@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { getOrderConstants, getOrders } from './notion_helper.ts';
+import { getOrderConstants, getOrders, formatOrders } from './notion_helper.js';
 
-export const sendMessageToTelegramNotifications = async (message) => {
+export const sendMessageToTelegramNotifications = async (message: string) => {
   await axios
     .post(
       `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -22,29 +22,33 @@ export const sendMessageToTelegramNotifications = async (message) => {
 export const createMessageFromOrders = async () => {
   const orderConstants = await getOrderConstants();
   const orders = await getOrders({ orderGroup: orderConstants.orderGroup });
+  if (!orders || orders?.length === 0) {
+    return {
+      sharpenerMessage: `No message for sharpener`,
+      driverMessage: `No message for driver`,
+    };
+  }
+
+  const formattedOrders = formatOrders(orders);
 
   let sharpenerMessage;
   let driverMessage;
 
-  if (orders.length === 0) {
-    sharpenerMessage = `No message for sharpener`;
-    driverMessage = `No message for driver`;
-  } else {
-    sharpenerMessage = `
+  sharpenerMessage = `
 *Order Summary for ${orderConstants.pickupDate} to ${orderConstants.deliveryDate}*
-    ${orders
-        .map(
-          (order) =>
-            `
-Order ${order.properties.ID.title[0].text.content.replace(`${orderConstants.orderGroup}O`, '')}:
-${order.properties.Knifes.number} x sharpen
-${order.properties.Repairs.number} x repair
-- ${order.properties['Sharpening Note'].rich_text[0]?.plain_text || 'NA'}
+    ${formattedOrders
+      .map(
+        (order) =>
+          `
+Order ${order.orderId.replace(`${orderConstants.orderGroup}O`, '')}:
+${order.knives} x sharpen
+${order.repairs} x repair
+- ${order.note}
           `,
-        )
-        .join('')}
+      )
+      .join('')}
     `;
-    driverMessage = `
+  driverMessage = `
 *Drivers*
 
 Drivers are using the dashboard. 
@@ -56,12 +60,19 @@ Collection – $${orders.length * 8}
 Return – $${orders.length * 8}
 Total – $${orders.length * 16}
     `;
-  }
 
   return { sharpenerMessage, driverMessage };
 };
 
-export const createNewOrderNotificationMessage = (orderInfo) => {
+type OrderInfo = {
+  orderNumber: string;
+  name: string;
+  phone: string;
+  address: string;
+  note: string;
+};
+
+export const createNewOrderNotificationMessage = (orderInfo: OrderInfo) => {
   const message = `
 ${orderInfo.orderNumber}: ${orderInfo.name} (${orderInfo.phone}) has placed an order.
 - Address: ${orderInfo.address}
@@ -71,7 +82,7 @@ ${orderInfo.orderNumber}: ${orderInfo.name} (${orderInfo.phone}) has placed an o
   return message;
 };
 
-export const createCollectionNotificationMessage = (orderId, imageUrl) => {
+export const createCollectionNotificationMessage = (orderId: string, imageUrl: string) => {
   const message = `
 ${orderId} has been collected.
 - Image: ${imageUrl}
@@ -80,7 +91,7 @@ ${orderId} has been collected.
   return message;
 };
 
-export const createDeliveryNotificationMessage = (orderId, imageUrl) => {
+export const createDeliveryNotificationMessage = (orderId: string, imageUrl: string) => {
   const message = `
 ${orderId} has been delivered.
 - Image: ${imageUrl}

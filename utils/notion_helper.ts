@@ -630,6 +630,8 @@ export function formatOrder(order: PageObjectResponse) {
     getTextFromNotionProperty(properties["Collected"]) === "true";
   const delivered =
     getTextFromNotionProperty(properties["Delivered"]) === "true";
+  const knives = Number(getTextFromNotionProperty(properties["Knifes"]));
+  const repairs = Number(getTextFromNotionProperty(properties["Repairs"]));
 
   return {
     pageId,
@@ -640,5 +642,7 @@ export function formatOrder(order: PageObjectResponse) {
     note,
     collected,
     delivered,
+    knives,
+    repairs,
   };
 }

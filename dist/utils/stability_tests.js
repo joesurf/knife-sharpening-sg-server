@@ -1,4 +1,4 @@
-import { getOrderConstants, getOrders, formatOrders } from './notion_helper.ts';
+import { getOrderConstants, getOrders, formatOrders } from './notion_helper.js';
 import { sendMessageToTelegramNotifications } from './telegram_helper.js';
 export const runStabilityTestOrderDetails = async () => {
     console.log('Running stability test');

@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cron from 'node-cron';
 import { PostHog } from 'posthog-node';
+import type { ErrorRequestHandler } from "express";
 import {
   send180DayReminder,
   sendCollectionReminder,
@@ -24,18 +25,18 @@ import {
   updateDriverOrderConstantsToNextOrderGroup,
   isDeliveryTomorrow,
   isPickupTomorrow,
-} from './utils/notion_helper.ts';
+} from './utils/notion_helper.js';
 import {
   createMessageFromOrders,
   sendMessageToTelegramNotifications,
 } from './utils/telegram_helper.js';
-import { runStabilityTestOrderDetails } from './utils/stability_tests.ts';
+import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
 
 const app = express();
 
 // Initialize PostHog
 const posthog = new PostHog(
-  process.env.POSTHOG_KEY,
+  process.env.POSTHOG_KEY || 'NA',
   { host: 'https://us.i.posthog.com' }
 );
 
@@ -155,12 +156,15 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  void _next;
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  res.status(err.status || 500);
-  res.render('error');
-});
+  res.status((err).status || 500);
+  res.render("error");
+};
+
+app.use(errorHandler);
 
 export default app;

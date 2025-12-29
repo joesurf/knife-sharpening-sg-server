@@ -6,7 +6,7 @@ import {
   clearNotionCustomerReminderDate,
   getCustomersWithReminderDates,
   formatOrders,
-} from './notion_helper.ts';
+} from './notion_helper.js';
 
 const BOTSPACE_COLLECTION_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e8a0a0f881d90a0c73f941';

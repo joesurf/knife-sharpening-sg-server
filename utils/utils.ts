@@ -1,6 +1,12 @@
 import { parseISO, format } from 'date-fns';
 
-const stringifyAddressObject = (addressObject) => {
+type Address = {
+  line1: string;
+  line2: string;
+  postal_code: string;
+};
+
+const stringifyAddressObject = (addressObject: Address) => {
   const addressLines = [];
 
   if (addressObject.line1) {
@@ -18,11 +24,11 @@ const stringifyAddressObject = (addressObject) => {
   return addressLines.join(', ');
 };
 
-const getNewOrderNumber = (orderGroup, currentOrder) => {
+const getNewOrderNumber = (orderGroup: number, currentOrder: number) => {
   return `${orderGroup}O${currentOrder + 1}`;
 };
 
-const formatDate = (date) => {
+const formatDate = (date: string) => {
   return format(parseISO(date), 'd MMMM');
 };
 
