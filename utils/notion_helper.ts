@@ -156,7 +156,7 @@ export const updateNotionCustomer180DayFollowUp = async (customerId: string, che
   }
 };
 
-export const getNotionOrderIdByOrderNumber = async (orderNumber: string) => {
+export const getNotionPageIdByOrderNumber = async (orderNumber: string) => {
   try {
     const response = await notion.dataSources.query({
       data_source_id: ORDERS_DATASOURCE_ID,
