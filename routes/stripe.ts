@@ -20,7 +20,7 @@ import { createNewOrderNotificationMessage, sendMessageToTelegramNotifications }
 const router = express.Router();
 
 const endpointSecret = process.env.STRIPE_SIGNING_KEY;
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'NA');
 const BOTSPACE_NEW_ORDER_WEBHOOK_URL = 'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e4cbdbbf1d5ae408c5657d'
 
 router.post(
@@ -32,6 +32,10 @@ router.post(
     // Make sure this is a Stripe event
     if (endpointSecret) {
       const signature = req.headers['stripe-signature'];
+      if (!signature) {
+        return res.sendStatus(400);
+      }
+
       try {
         event = stripe.webhooks.constructEvent(
           req.body,
@@ -41,10 +45,14 @@ router.post(
       } catch (err) {
         console.log(
           `:warning: Webhook signature verification failed.`,
-          err.message,
+          err
         );
         return res.sendStatus(400);
       }
+    }
+
+    if (!event) {
+      return res.sendStatus(400);
     }
 
     switch (event.type) {
@@ -52,25 +60,36 @@ router.post(
         console.log(event);
         const eventData = event.data.object;
         const customerData = eventData.customer_details;
+
+        if (!customerData || !customerData.phone || !customerData.name || !customerData.address || !eventData.amount_total) {
+          return res.sendStatus(400);
+        }
         const customerPhone = customerData.phone.replaceAll(' ', '');
         const customerName = customerData.name;
-        const customerAddress = stringifyAddressObject(customerData.address);
+
+        const addressToStringify = {
+          line1: customerData.address.line1 || '',
+          line2: customerData.address.line2 || '',
+          postal_code: customerData.address.postal_code || '',
+        };
+
+        const customerAddress = stringifyAddressObject(addressToStringify);
         const additionalInstructions =
           eventData.custom_fields.find(
             (field) => field.key === 'additional_instructions',
           )?.text?.value || 'NA';
         const sharpeningNote = 'NA';
         const orderData = eventData.metadata;
-        const orderKnives = orderData?.knives || 0;
-        const orderRepairs = orderData?.repairs || 0;
-        const orderCustom = orderData?.custom || 0;
+        const orderKnives = orderData?.knives || '0';
+        const orderRepairs = orderData?.repairs || '0';
+        const orderCustom = orderData?.custom || '0';
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
         const formattedPickupDate = formatDate(orderConstants.pickupDate);
         const formattedDeliveryDate = formatDate(orderConstants.deliveryDate);
 
         // If the order is custom, we don't want to create a new order
-        if (orderCustom > 0) {
+        if (Number(orderCustom) > 0) {
           break;
         }
 
@@ -88,13 +107,16 @@ router.post(
           await clearNotionCustomerReminderDate(customerId);
         } else {
           const customer = await insertNotionCustomer(customerBody);
+          if (!customer) {
+            return res.sendStatus(400);
+          }
           customerId = customer.id;
         }
 
         const orderBody = {
           knives: parseInt(orderKnives),
           repairs: parseInt(orderRepairs),
-          orderTotal: parseFloat(orderTotal),
+          orderTotal: orderTotal,
           note: additionalInstructions,
           sharpeningNote: sharpeningNote,
           customerId: customerId,
