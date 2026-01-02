@@ -139,6 +139,9 @@ router.post(
           pickupDate: formattedPickupDate,
           deliveryDate: formattedDeliveryDate,
           timing: orderConstants.timing,
+          knives: parseInt(orderKnives),
+          repairs: parseInt(orderRepairs),
+          orderTotal: orderTotal,
         };
         await fetchBotspace(BOTSPACE_NEW_ORDER_WEBHOOK_URL, botspaceBody);
 

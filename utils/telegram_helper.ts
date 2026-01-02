@@ -70,6 +70,9 @@ type OrderInfo = {
   phone: string;
   address: string;
   note: string;
+  knives: number;
+  repairs: number;
+  orderTotal: number;
 };
 
 export const createNewOrderNotificationMessage = (orderInfo: OrderInfo) => {
@@ -77,6 +80,9 @@ export const createNewOrderNotificationMessage = (orderInfo: OrderInfo) => {
 ${orderInfo.orderNumber}: ${orderInfo.name} (${orderInfo.phone}) has placed an order.
 - Address: ${orderInfo.address}
 - Note: ${orderInfo.note}
+- ${orderInfo.knives} x sharpen
+- ${orderInfo.repairs} x repair
+- Total: $${orderInfo.orderTotal}
   `
 
   return message;
