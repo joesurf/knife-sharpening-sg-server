@@ -4,7 +4,8 @@ import 'dotenv/config';
 // npx tsx testingFile.js
 
 // import { isPickupTomorrow, isDeliveryTomorrow, getOrderConstants } from './utils/notion_helper.js';
-import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
+// import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
+import { createMessageFromOrders, sendMessageToTelegramNotifications } from './utils/telegram_helper.js';
 
 // const orderConstants = await getOrderConstants();
 // console.log(orderConstants);
@@ -17,8 +18,7 @@ import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
 //   console.log('It is tomorrow');
 // }
 
-// const { sharpenerMessage, driverMessage } = await createMessageFromOrders();
-// sendMessageToTelegramNotifications(sharpenerMessage);
+const { sharpenerMessage } = await createMessageFromOrders();
+sendMessageToTelegramNotifications(sharpenerMessage);
 // sendMessageToTelegramNotifications(driverMessage);
 // sendCollectionReminder();
-runStabilityTestOrderDetails();

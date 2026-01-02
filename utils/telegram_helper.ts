@@ -43,7 +43,7 @@ export const createMessageFromOrders = async () => {
 Order ${order.orderId.replace(`${orderConstants.orderGroup}O`, '')}:
 ${order.knives} x sharpen
 ${order.repairs} x repair
-- ${order.note}
+- ${order.sharpeningNote}
           `,
       )
       .join('')}

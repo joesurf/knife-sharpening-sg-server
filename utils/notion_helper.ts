@@ -626,6 +626,7 @@ export function formatOrder(order: PageObjectResponse) {
   const address =
     getTextFromNotionProperty(properties["Customer Address"]) ?? "NA";
   const note = getTextFromNotionProperty(properties["Note"]) ?? "NA";
+  const sharpeningNote = getTextFromNotionProperty(properties["Sharpening Note"]) ?? "NA";
   const collected =
     getTextFromNotionProperty(properties["Collected"]) === "true";
   const delivered =
@@ -640,6 +641,7 @@ export function formatOrder(order: PageObjectResponse) {
     whatsApp,
     address,
     note,
+    sharpeningNote,
     collected,
     delivered,
     knives,

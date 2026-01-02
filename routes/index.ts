@@ -26,12 +26,13 @@ router.post('/collection-picture', upload.single("image"), async (req, res) => {
     const mimetype = req.file?.mimetype;
     const imageUrl = await putToS3({ key: `orders/${orderId}/collection/${req.file?.originalname}`, body: buffer, contentType: mimetype });
 
-    getNotionPageIdByOrderNumber(orderId).then((pageId) => {
-      if (!pageId) {
-        return res.status(400).json({ message: "No page ID found for order" });
-      }
-      updateNotionOrderCollected(pageId, true);
-    });
+    const pageId = await getNotionPageIdByOrderNumber(orderId);
+
+    if (!pageId) {
+      return res.status(400).json({ message: "No page ID found for order" });
+    }
+
+    updateNotionOrderCollected(pageId, true);
     sendMessageToTelegramNotifications(createCollectionNotificationMessage(orderId, imageUrl));
     sendCollectedMessage(orderId, imageUrl);
 
