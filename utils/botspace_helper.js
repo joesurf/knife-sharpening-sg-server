@@ -62,8 +62,7 @@ const sendCollectionReminder = async () => {
 const sendDeliveryReminder = async () => {
   const orderConstants = await getOrderConstants();
   const timing = orderConstants.timing;
-  // This goes out on Saturday. The order constants are updated on Friday. So we need to go back one order group
-  const previousOrderGroup = orderConstants.orderGroup - 1;
+  const previousOrderGroup = orderConstants.driverOrderGroup;
   const orders = await getOrders({ orderGroup: previousOrderGroup, includeUrgent: false });
   orders.forEach(async (order) => {
     const orderBody = {
