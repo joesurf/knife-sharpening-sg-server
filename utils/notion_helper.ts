@@ -221,6 +221,26 @@ export const updateNotionOrderDelivered = async (orderId: string, check: boolean
   }
 };
 
+
+export const updateNotionPagePickupOrder = async (pageId: string, pickupOrder: number) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: pageId,
+      properties: {
+        'Pickup Order': { number: pickupOrder },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 type Customer = {
   name: string;
   phone: string;

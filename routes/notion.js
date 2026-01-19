@@ -4,6 +4,7 @@ import {
 } from '../utils/utils.js';
 import {
   getOrderConstants,
+  updateNotionPagePickupOrder,
 } from '../utils/notion_helper.js';
 
 const router = express.Router();
@@ -19,5 +20,14 @@ router.get('/get-order-constants', async (req, res) => {
   res.json(orderConstants);
 });
 
+router.put('/update-pickup-order', async (req, res) => {
+  const pickupOrder = req.body.pickupOrder;
+  await Promise.all(
+    pickupOrder.map(order =>
+      updateNotionPagePickupOrder(order.pageId, order.position)
+    )
+  );
+  res.json({ received: true });
+});
 
 export default router;
