@@ -21,13 +21,12 @@ import {
   sendRequestedReminder,
 } from './utils/botspace_helper.js';
 import {
-  updateOrderConstantsToNextOrderGroup,
-  updateServiceOrderConstantsToNextOrderGroup,
   isDeliveryTomorrow,
   isPickupTomorrow,
 } from './utils/notion_helper.js';
 import {
   createMessageFromOrders,
+  createOrderStatusMessage,
   sendMessageToTelegramNotifications,
 } from './utils/telegram_helper.js';
 import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
@@ -68,10 +67,22 @@ app.use('/notion', notionRouter);
 app.use('/analytics', analyticsRouter);
 
 cron.schedule(
-  '0 18 * * 5',
+  '0 21 * * *',
+  async () => {
+    console.log('[CRON] Running Order Constant Check at 9pm');
+    const message = await createOrderStatusMessage();
+    await sendMessageToTelegramNotifications(message);
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '0 18 * * *',
   async () => {
     if (await isPickupTomorrow()) {
-      console.log('[CRON] Running Friday Pickup Reminder at 6pm');
+      console.log('[CRON] Running Pickup Reminder at 6pm');
       runStabilityTestOrderDetails();
       sendCollectionReminder();
     }
@@ -82,7 +93,7 @@ cron.schedule(
 );
 
 cron.schedule(
-  '15 18 * * 5',
+  '15 18 * * *',
   async () => {
     if (await isPickupTomorrow()) {
       console.log(
@@ -99,24 +110,24 @@ cron.schedule(
   },
 );
 
-cron.schedule(
-  '30 18 * * 5',
-  async () => {
-    if (await isPickupTomorrow()) {
-      console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
-      updateOrderConstantsToNextOrderGroup();
-    }
-  },
-  {
-    timezone: 'Asia/Singapore',
-  },
-);
+// cron.schedule(
+//   '30 18 * * 5',
+//   async () => {
+//     if (await isPickupTomorrow()) {
+//       console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
+//       updateOrderConstantsToNextOrderGroup();
+//     }
+//   },
+//   {
+//     timezone: 'Asia/Singapore',
+//   },
+// );
 
 cron.schedule(
-  '0 18 * * 6',
+  '0 18 * * *',
   async () => {
     if (await isDeliveryTomorrow()) {
-      console.log('[CRON] Running Saturday Delivery Reminder at 6pm');
+      console.log('[CRON] Running Delivery Reminder at 6pm');
       sendDeliveryReminder();
     }
   },
@@ -126,10 +137,10 @@ cron.schedule(
 );
 
 cron.schedule(
-  '0 18 * * 3',
+  '0 20 * * 3',
   async () => {
     console.log(
-      '[CRON] Running Wednesday 180 Day and Requested Reminder at 6pm',
+      '[CRON] Running Wednesday 180 Day and Requested Reminder at 8pm',
     );
     send180DayReminder();
     sendRequestedReminder();
@@ -139,16 +150,16 @@ cron.schedule(
   },
 );
 
-cron.schedule(
-  '0 0 * * 1',
-  async () => {
-    console.log('[CRON] Running Monday Service Order Constants Update at Midnight');
-    updateServiceOrderConstantsToNextOrderGroup();
-  },
-  {
-    timezone: 'Asia/Singapore',
-  },
-);
+// cron.schedule(
+//   '0 0 * * 1',
+//   async () => {
+//     console.log('[CRON] Running Monday Service Order Constants Update at Midnight');
+//     updateServiceOrderConstantsToNextOrderGroup();
+//   },
+//   {
+//     timezone: 'Asia/Singapore',
+//   },
+// );
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
