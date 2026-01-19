@@ -21,8 +21,8 @@ export const sendMessageToTelegramNotifications = async (message: string) => {
 
 export const createMessageFromOrders = async () => {
   const orderConstants = await getOrderConstants();
-  const driverGroup = orderConstants.driverOrderGroup;
-  const orders = await getOrders({ orderGroup: driverGroup.orderGroupNumber });
+  const serviceGroup = orderConstants.serviceOrderGroup;
+  const orders = await getOrders({ orderGroup: serviceGroup.orderGroupNumber });
   if (!orders || orders?.length === 0) {
     return {
       sharpenerMessage: `No message for sharpener`,
@@ -36,12 +36,12 @@ export const createMessageFromOrders = async () => {
   let driverMessage;
 
   sharpenerMessage = `
-*Order Summary for ${driverGroup.pickupDate} to ${driverGroup.deliveryDate}*
+*Order Summary for ${serviceGroup.pickupDate} to ${serviceGroup.deliveryDate}*
     ${formattedOrders
       .map(
         (order) =>
           `
-Order ${order.orderId.replace(`${driverGroup.orderGroupNumber}O`, '')}:
+Order ${order.orderId.replace(`${serviceGroup.orderGroupNumber}O`, '')}:
 ${order.knives} x sharpen
 ${order.repairs} x repair
 - ${order.sharpeningNote}
