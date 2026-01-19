@@ -22,7 +22,7 @@ import {
 } from './utils/botspace_helper.js';
 import {
   updateOrderConstantsToNextOrderGroup,
-  updateDriverOrderConstantsToNextOrderGroup,
+  updateServiceOrderConstantsToNextOrderGroup,
   isDeliveryTomorrow,
   isPickupTomorrow,
 } from './utils/notion_helper.js';
@@ -142,8 +142,8 @@ cron.schedule(
 cron.schedule(
   '0 0 * * 1',
   async () => {
-    console.log('[CRON] Running Monday Driver Order Constants Update at Midnight');
-    updateDriverOrderConstantsToNextOrderGroup();
+    console.log('[CRON] Running Monday Service Order Constants Update at Midnight');
+    updateServiceOrderConstantsToNextOrderGroup();
   },
   {
     timezone: 'Asia/Singapore',

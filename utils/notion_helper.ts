@@ -80,14 +80,14 @@ export function getTextFromNotionProperty(
 export const isPickupTomorrow = async () => {
   const orderConstants = await getOrderConstants();
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-  const pickupDate = format(orderConstants.driverOrderGroup.pickupDate, 'yyyy-MM-dd');
+  const pickupDate = format(orderConstants.serviceOrderGroup.pickupDate, 'yyyy-MM-dd');
   return tomorrow === pickupDate;
 };
 
 export const isDeliveryTomorrow = async () => {
   const orderConstants = await getOrderConstants();
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-  const deliveryDate = format(orderConstants.driverOrderGroup.deliveryDate, 'yyyy-MM-dd');
+  const deliveryDate = format(orderConstants.serviceOrderGroup.deliveryDate, 'yyyy-MM-dd');
   return tomorrow === deliveryDate;
 };
 
@@ -399,10 +399,10 @@ export type OrderGroupDetails = {
 
 export type OrderConstants = {
   bookingOrderGroup: OrderGroupDetails;
-  driverOrderGroup: OrderGroupDetails;
+  serviceOrderGroup: OrderGroupDetails;
 };
 
-async function getOrderStatusRow(name: 'Booking' | 'Driver'): Promise<{ orderGroupId: string; orderGroupNumber: number }> {
+async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupId: string; orderGroupNumber: number }> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
     filter: {
@@ -456,7 +456,7 @@ async function getOrderGroupDetails(orderGroupId: string): Promise<{ pickupDate:
 export const getOrderConstants = async (): Promise<OrderConstants> => {
   const [bookingStatus, driverStatus] = await Promise.all([
     getOrderStatusRow('Booking'),
-    getOrderStatusRow('Driver'),
+    getOrderStatusRow('Service'),
   ]);
 
   const [bookingDetails, driverDetails] = await Promise.all([
@@ -469,7 +469,7 @@ export const getOrderConstants = async (): Promise<OrderConstants> => {
       orderGroupNumber: bookingStatus.orderGroupNumber,
       ...bookingDetails,
     },
-    driverOrderGroup: {
+    serviceOrderGroup: {
       orderGroupNumber: driverStatus.orderGroupNumber,
       ...driverDetails,
     },
@@ -531,7 +531,7 @@ export const getOrderCountForGroup = async (orderGroup: number): Promise<number>
   return orders?.length ?? 0;
 };
 
-async function getOrderStatusPageId(name: 'Booking' | 'Driver'): Promise<string> {
+async function getOrderStatusPageId(name: 'Booking' | 'Service'): Promise<string> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
     filter: {
@@ -592,7 +592,7 @@ async function getOrCreateOrderGroupByNumber(orderGroupNumber: number): Promise<
   return newPage.id;
 }
 
-async function updateOrderStatusRelation(statusName: 'Booking' | 'Driver', orderGroupPageId: string): Promise<void> {
+async function updateOrderStatusRelation(statusName: 'Booking' | 'Service', orderGroupPageId: string): Promise<void> {
   const statusPageId = await getOrderStatusPageId(statusName);
 
   await notion.pages.update({
@@ -612,11 +612,11 @@ export const updateOrderConstantsToNextOrderGroup = async () => {
   await updateOrderStatusRelation('Booking', nextOrderGroupId);
 };
 
-export const updateDriverOrderConstantsToNextOrderGroup = async () => {
+export const updateServiceOrderConstantsToNextOrderGroup = async () => {
   const orderConstants = await getOrderConstants();
-  const nextOrderGroupNumber = orderConstants.driverOrderGroup.orderGroupNumber + 1;
+  const nextOrderGroupNumber = orderConstants.serviceOrderGroup.orderGroupNumber + 1;
   const nextOrderGroupId = await getOrCreateOrderGroupByNumber(nextOrderGroupNumber);
-  await updateOrderStatusRelation('Driver', nextOrderGroupId);
+  await updateOrderStatusRelation('Service', nextOrderGroupId);
 };
 
 export const getCustomers180DaysOld = async () => {

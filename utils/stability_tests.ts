@@ -4,7 +4,7 @@ import { sendMessageToTelegramNotifications } from './telegram_helper.js';
 export const runStabilityTestOrderDetails = async () => {
   console.log('Running stability test');
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup.orderGroupNumber, includeUrgent: false });
+  const orders = await getOrders({ orderGroup: orderConstants.serviceOrderGroup.orderGroupNumber, includeUrgent: false });
   if (!orders || orders?.length === 0) {
     console.log('No orders found');
     return;
