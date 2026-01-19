@@ -7,10 +7,10 @@ const notion = new Client({
   auth: process.env.NOTION_TOKEN,
 });
 
-const ORDER_CONSTANTS_DATASOURCE_ID = '286b653f-dfd3-800c-adf4-000b46bcc393';
+const ORDER_STATUS_DATASOURCE_ID = '2edb653f-dfd3-8033-83ee-000b9e670c37';
+const ORDER_GROUPS_DATASOURCE_ID = '2edb653f-dfd3-8044-84ea-000bc9a2a2e0';
 const ORDERS_DATASOURCE_ID = '9c015ed7-2d42-4689-b036-794ac2ba6295';
 const CUSTOMERS_DATASOURCE_ID = 'e4dcf0cf-c09d-4917-9d2a-b7e1eaedf976';
-const ORDER_CONSTANTS_PAGE_ID = '286b653fdfd380c7a11bc46af8d61357';
 
 type NotionProperty =
   PageObjectResponse["properties"][string];
@@ -80,14 +80,14 @@ export function getTextFromNotionProperty(
 export const isPickupTomorrow = async () => {
   const orderConstants = await getOrderConstants();
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-  const pickupDate = format(orderConstants.pickupDate, 'yyyy-MM-dd');
+  const pickupDate = format(orderConstants.driverOrderGroup.pickupDate, 'yyyy-MM-dd');
   return tomorrow === pickupDate;
 };
 
 export const isDeliveryTomorrow = async () => {
   const orderConstants = await getOrderConstants();
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-  const deliveryDate = format(orderConstants.previousDeliveryDate, 'yyyy-MM-dd');
+  const deliveryDate = format(orderConstants.driverOrderGroup.deliveryDate, 'yyyy-MM-dd');
   return tomorrow === deliveryDate;
 };
 
@@ -312,15 +312,6 @@ export const insertNotionOrder = async (order: Order) => {
       order.currentOrder,
     );
 
-    await notion.pages.update({
-      page_id: ORDER_CONSTANTS_PAGE_ID,
-      properties: {
-        'Current Order': {
-          number: order.currentOrder + 1,
-        },
-      },
-    });
-
     const response = await notion.pages.create({
       parent: {
         data_source_id: ORDERS_DATASOURCE_ID,
@@ -399,41 +390,90 @@ export const insertNotionOrder = async (order: Order) => {
   }
 };
 
-type OrderConstants = {
+export type OrderGroupDetails = {
+  orderGroupNumber: number;
   pickupDate: string;
   deliveryDate: string;
-  previousPickupDate: string;
-  previousDeliveryDate: string;
-  orderGroup: number;
-  driverOrderGroup: number;
-  currentOrder: number;
   timing: string;
+};
+
+export type OrderConstants = {
+  bookingOrderGroup: OrderGroupDetails;
+  driverOrderGroup: OrderGroupDetails;
+};
+
+async function getOrderStatusRow(name: 'Booking' | 'Driver'): Promise<{ orderGroupId: string; orderGroupNumber: number }> {
+  const response = await notion.dataSources.query({
+    data_source_id: ORDER_STATUS_DATASOURCE_ID,
+    filter: {
+      property: 'Name',
+      title: { equals: name },
+    },
+  });
+
+  const row = response?.results?.[0];
+  if (!row || !('properties' in row)) throw new Error(`No "${name}" row found in Order Status`);
+
+  const relationProp = row.properties['Order Group'];
+  if (relationProp?.type !== 'relation') throw new Error(`Order Group is not a relation for "${name}"`);
+
+  const relationArray = relationProp.relation as { id: string }[];
+  const relation = relationArray?.[0];
+  if (!relation?.id) throw new Error(`No Order Group relation found for "${name}"`);
+
+  const orderGroupPage = await notion.pages.retrieve({ page_id: relation.id });
+  if (!('properties' in orderGroupPage)) throw new Error(`Could not retrieve Order Group page for "${name}"`);
+
+  const nameProp = orderGroupPage.properties['Name'];
+  const orderGroupNumber = nameProp?.type === 'title'
+    ? parseInt(nameProp.title?.[0]?.plain_text, 10)
+    : NaN;
+
+  if (isNaN(orderGroupNumber)) throw new Error(`Invalid order group number for "${name}"`);
+
+  return { orderGroupId: relation.id, orderGroupNumber };
+}
+
+async function getOrderGroupDetails(orderGroupId: string): Promise<{ pickupDate: string; deliveryDate: string; timing: string }> {
+  const page = await notion.pages.retrieve({ page_id: orderGroupId });
+  if (!('properties' in page)) throw new Error('Could not retrieve Order Group details');
+
+  const pickupDateProp = page.properties['Pickup Date'];
+  const deliveryDateProp = page.properties['Delivery Date'];
+  const timingProp = page.properties['Timing'];
+
+  const pickupDate = pickupDateProp?.type === 'date' ? pickupDateProp.date?.start : undefined;
+  const deliveryDate = deliveryDateProp?.type === 'date' ? deliveryDateProp.date?.start : undefined;
+  const timing = timingProp?.type === 'rich_text' ? timingProp.rich_text?.[0]?.plain_text : undefined;
+
+  if (!pickupDate || !deliveryDate || typeof timing !== 'string') {
+    throw new Error('Order Group missing required fields');
+  }
+
+  return { pickupDate, deliveryDate, timing };
 }
 
 export const getOrderConstants = async (): Promise<OrderConstants> => {
-  const response: QueryDataSourceResponse = await notion.dataSources.query({
-    data_source_id: ORDER_CONSTANTS_DATASOURCE_ID,
-  });
-  const first = response.results[0];
+  const [bookingStatus, driverStatus] = await Promise.all([
+    getOrderStatusRow('Booking'),
+    getOrderStatusRow('Driver'),
+  ]);
 
-  if (!first || first.object !== "page" || !("properties" in first)) {
-    throw new Error("Order constants row is not a full PageObjectResponse");
-  }
+  const [bookingDetails, driverDetails] = await Promise.all([
+    getOrderGroupDetails(bookingStatus.orderGroupId),
+    getOrderGroupDetails(driverStatus.orderGroupId),
+  ]);
 
-  const constantsResponseProperties = first.properties;
-
-  const constants: OrderConstants = {
-    pickupDate: getTextFromNotionProperty(constantsResponseProperties['Pickup Date']) || 'NA',
-    deliveryDate: getTextFromNotionProperty(constantsResponseProperties['Delivery Date']) || 'NA',
-    previousPickupDate: getTextFromNotionProperty(constantsResponseProperties['Previous Pickup Date']) || 'NA',
-    previousDeliveryDate: getTextFromNotionProperty(constantsResponseProperties['Previous Delivery Date']) || 'NA',
-    orderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Order Group'])),
-    driverOrderGroup: Number(getTextFromNotionProperty(constantsResponseProperties['Driver Order Group'])),
-    currentOrder: Number(getTextFromNotionProperty(constantsResponseProperties['Current Order'])),
-    timing: getTextFromNotionProperty(constantsResponseProperties['Timing']) || 'NA',
+  return {
+    bookingOrderGroup: {
+      orderGroupNumber: bookingStatus.orderGroupNumber,
+      ...bookingDetails,
+    },
+    driverOrderGroup: {
+      orderGroupNumber: driverStatus.orderGroupNumber,
+      ...driverDetails,
+    },
   };
-
-  return constants;
 };
 
 type GetOrdersParams = {
@@ -486,63 +526,97 @@ export const getOrders = async ({ orderGroup, driverId, includeUrgent = false }:
   }
 };
 
-export const updateOrderConstantsToNextOrderGroup = async () => {
-  const orderConstants = await getOrderConstants();
-  const newOrderGroup = orderConstants.orderGroup + 1;
-  const newPickupDate = format(
-    addWeeks(parseISO(orderConstants.pickupDate), 1),
-    'yyyy-MM-dd',
-  );
-  const newDeliveryDate = format(
-    addWeeks(parseISO(orderConstants.deliveryDate), 1),
-    'yyyy-MM-dd',
-  );
+export const getOrderCountForGroup = async (orderGroup: number): Promise<number> => {
+  const orders = await getOrders({ orderGroup, includeUrgent: true });
+  return orders?.length ?? 0;
+};
 
-  await notion.pages.update({
-    page_id: ORDER_CONSTANTS_PAGE_ID,
+async function getOrderStatusPageId(name: 'Booking' | 'Driver'): Promise<string> {
+  const response = await notion.dataSources.query({
+    data_source_id: ORDER_STATUS_DATASOURCE_ID,
+    filter: {
+      property: 'Name',
+      title: { equals: name },
+    },
+  });
+
+  const row = response?.results?.[0];
+  if (!row) throw new Error(`No "${name}" row found in Order Status`);
+  return row.id;
+}
+
+async function getOrCreateOrderGroupByNumber(orderGroupNumber: number): Promise<string> {
+  // Try to find existing Order Group
+  const response = await notion.dataSources.query({
+    data_source_id: ORDER_GROUPS_DATASOURCE_ID,
+    filter: {
+      property: 'Name',
+      title: { equals: String(orderGroupNumber) },
+    },
+  });
+
+  const existing = response?.results?.[0];
+  if (existing) {
+    return existing.id;
+  }
+
+  // Create new Order Group with dates one week from current
+  const orderConstants = await getOrderConstants();
+  const currentPickupDate = orderConstants.bookingOrderGroup.pickupDate;
+  const currentDeliveryDate = orderConstants.bookingOrderGroup.deliveryDate;
+  const timing = orderConstants.bookingOrderGroup.timing;
+
+  const newPickupDate = format(addWeeks(parseISO(currentPickupDate), 1), 'yyyy-MM-dd');
+  const newDeliveryDate = format(addWeeks(parseISO(currentDeliveryDate), 1), 'yyyy-MM-dd');
+
+  const newPage = await notion.pages.create({
+    parent: {
+      data_source_id: ORDER_GROUPS_DATASOURCE_ID,
+    },
     properties: {
-      'Order Group': {
-        number: newOrderGroup,
-      },
-      'Current Order': {
-        number: 0,
+      Name: {
+        title: [{ text: { content: String(orderGroupNumber) } }],
       },
       'Pickup Date': {
-        date: {
-          start: newPickupDate,
-        },
+        date: { start: newPickupDate },
       },
       'Delivery Date': {
-        date: {
-          start: newDeliveryDate,
-        },
+        date: { start: newDeliveryDate },
       },
-      'Previous Pickup Date': {
-        date: {
-          start: orderConstants.pickupDate,
-        },
-      },
-      'Previous Delivery Date': {
-        date: {
-          start: orderConstants.deliveryDate,
-        },
+      Timing: {
+        rich_text: [{ text: { content: timing } }],
       },
     },
   });
+
+  return newPage.id;
+}
+
+async function updateOrderStatusRelation(statusName: 'Booking' | 'Driver', orderGroupPageId: string): Promise<void> {
+  const statusPageId = await getOrderStatusPageId(statusName);
+
+  await notion.pages.update({
+    page_id: statusPageId,
+    properties: {
+      'Order Group': {
+        relation: [{ id: orderGroupPageId }],
+      },
+    },
+  });
+}
+
+export const updateOrderConstantsToNextOrderGroup = async () => {
+  const orderConstants = await getOrderConstants();
+  const nextOrderGroupNumber = orderConstants.bookingOrderGroup.orderGroupNumber + 1;
+  const nextOrderGroupId = await getOrCreateOrderGroupByNumber(nextOrderGroupNumber);
+  await updateOrderStatusRelation('Booking', nextOrderGroupId);
 };
 
 export const updateDriverOrderConstantsToNextOrderGroup = async () => {
   const orderConstants = await getOrderConstants();
-  const newOrderGroup = orderConstants.driverOrderGroup + 1;
-
-  await notion.pages.update({
-    page_id: ORDER_CONSTANTS_PAGE_ID,
-    properties: {
-      'Driver Order Group': {
-        number: newOrderGroup,
-      }
-    },
-  });
+  const nextOrderGroupNumber = orderConstants.driverOrderGroup.orderGroupNumber + 1;
+  const nextOrderGroupId = await getOrCreateOrderGroupByNumber(nextOrderGroupNumber);
+  await updateOrderStatusRelation('Driver', nextOrderGroupId);
 };
 
 export const getCustomers180DaysOld = async () => {

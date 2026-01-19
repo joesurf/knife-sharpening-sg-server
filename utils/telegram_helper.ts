@@ -21,7 +21,8 @@ export const sendMessageToTelegramNotifications = async (message: string) => {
 
 export const createMessageFromOrders = async () => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders({ orderGroup: orderConstants.orderGroup });
+  const driverGroup = orderConstants.driverOrderGroup;
+  const orders = await getOrders({ orderGroup: driverGroup.orderGroupNumber });
   if (!orders || orders?.length === 0) {
     return {
       sharpenerMessage: `No message for sharpener`,
@@ -35,12 +36,12 @@ export const createMessageFromOrders = async () => {
   let driverMessage;
 
   sharpenerMessage = `
-*Order Summary for ${orderConstants.pickupDate} to ${orderConstants.deliveryDate}*
+*Order Summary for ${driverGroup.pickupDate} to ${driverGroup.deliveryDate}*
     ${formattedOrders
       .map(
         (order) =>
           `
-Order ${order.orderId.replace(`${orderConstants.orderGroup}O`, '')}:
+Order ${order.orderId.replace(`${driverGroup.orderGroupNumber}O`, '')}:
 ${order.knives} x sharpen
 ${order.repairs} x repair
 - ${order.sharpeningNote}
@@ -51,7 +52,7 @@ ${order.repairs} x repair
   driverMessage = `
 *Drivers*
 
-Drivers are using the dashboard. 
+Drivers are using the dashboard.
 
 Remember to assign them the orders in Notion, and then ask Sean to pay them this amount.
 
