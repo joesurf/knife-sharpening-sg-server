@@ -9,6 +9,7 @@ import {
   insertNotionCustomer,
   insertNotionOrder,
   getOrderConstants,
+  getOrderCountForGroup,
   getNotionCustomerIdByPhone,
   updateNotionCustomerAddress,
   updateNotionCustomer180DayFollowUp,
@@ -85,8 +86,10 @@ router.post(
         const orderCustom = orderData?.custom || '0';
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
-        const formattedPickupDate = formatDate(orderConstants.pickupDate);
-        const formattedDeliveryDate = formatDate(orderConstants.deliveryDate);
+        const bookingGroup = orderConstants.bookingOrderGroup;
+        const currentOrderCount = await getOrderCountForGroup(bookingGroup.orderGroupNumber);
+        const formattedPickupDate = formatDate(bookingGroup.pickupDate);
+        const formattedDeliveryDate = formatDate(bookingGroup.deliveryDate);
 
         // If the order is custom, we don't want to create a new order
         if (Number(orderCustom) > 0) {
@@ -120,10 +123,10 @@ router.post(
           note: additionalInstructions,
           sharpeningNote: sharpeningNote,
           customerId: customerId,
-          orderGroup: orderConstants.orderGroup,
-          currentOrder: orderConstants.currentOrder,
-          pickupDate: orderConstants.pickupDate,
-          deliveryDate: orderConstants.deliveryDate,
+          orderGroup: bookingGroup.orderGroupNumber,
+          currentOrder: currentOrderCount,
+          pickupDate: bookingGroup.pickupDate,
+          deliveryDate: bookingGroup.deliveryDate,
         };
         await insertNotionOrder(orderBody);
 
@@ -133,12 +136,12 @@ router.post(
           address: customerAddress,
           note: additionalInstructions,
           orderNumber: getNewOrderNumber(
-            orderConstants.orderGroup,
-            orderConstants.currentOrder,
+            bookingGroup.orderGroupNumber,
+            currentOrderCount,
           ),
           pickupDate: formattedPickupDate,
           deliveryDate: formattedDeliveryDate,
-          timing: orderConstants.timing,
+          timing: bookingGroup.timing,
           knives: parseInt(orderKnives),
           repairs: parseInt(orderRepairs),
           orderTotal: orderTotal,

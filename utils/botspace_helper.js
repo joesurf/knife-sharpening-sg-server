@@ -45,14 +45,14 @@ const fetchBotspace = (url, body) => {
 
 const sendCollectionReminder = async () => {
   const orderConstants = await getOrderConstants();
-  const timing = orderConstants.timing;
-  const orders = await getOrders({ orderGroup: orderConstants.orderGroup, includeUrgent: false });
+  const driverGroup = orderConstants.driverOrderGroup;
+  const orders = await getOrders({ orderGroup: driverGroup.orderGroupNumber, includeUrgent: false });
   const formattedOrders = formatOrders(orders);
   formattedOrders.forEach(async (order) => {
     const orderBody = {
       name: order.customerName,
       phone: order.whatsApp,
-      timing: timing,
+      timing: driverGroup.timing,
       address: order.address,
     };
     await fetchBotspace(BOTSPACE_COLLECTION_WEBHOOK_URL, orderBody);
@@ -61,9 +61,8 @@ const sendCollectionReminder = async () => {
 
 const sendDeliveryReminder = async () => {
   const orderConstants = await getOrderConstants();
-  const timing = orderConstants.timing;
-  const previousOrderGroup = orderConstants.driverOrderGroup;
-  const orders = await getOrders({ orderGroup: previousOrderGroup, includeUrgent: false });
+  const driverGroup = orderConstants.driverOrderGroup;
+  const orders = await getOrders({ orderGroup: driverGroup.orderGroupNumber, includeUrgent: false });
   orders.forEach(async (order) => {
     const orderBody = {
       name: order.properties['Customer Name'].rollup.array[0].title[0]
@@ -71,7 +70,7 @@ const sendDeliveryReminder = async () => {
       phone: order.properties[
         'Customer Phone'
       ].rollup.array[0].phone_number.replaceAll(' ', ''),
-      timing: timing,
+      timing: driverGroup.timing,
     };
     await fetchBotspace(BOTSPACE_DELIVERY_WEBHOOK_URL, orderBody);
   });
@@ -105,7 +104,7 @@ const sendRequestedReminder = async () => {
 
 const sendCollectedMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup, includeUrgent: false });
+  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup.orderGroupNumber, includeUrgent: false });
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
 
@@ -127,7 +126,7 @@ const sendCollectedMessage = async (orderId, imageUrl) => {
 
 const sendDeliveredMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
-  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup, includeUrgent: false });
+  const orders = await getOrders({ orderGroup: orderConstants.driverOrderGroup.orderGroupNumber, includeUrgent: false });
   const customer = orders.find((order) => order.properties['ID'].title[0].text.content === orderId);
   console.log(customer);
 
