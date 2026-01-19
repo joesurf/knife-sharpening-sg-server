@@ -15,9 +15,19 @@ router.get('/', (req, res) => {
 
 router.get('/get-order-constants', async (req, res) => {
   const orderConstants = await getOrderConstants();
-  orderConstants.pickupDate = formatDate(orderConstants.pickupDate);
-  orderConstants.deliveryDate = formatDate(orderConstants.deliveryDate);
-  res.json(orderConstants);
+  const formatted = {
+    bookingOrderGroup: {
+      ...orderConstants.bookingOrderGroup,
+      pickupDate: formatDate(orderConstants.bookingOrderGroup.pickupDate),
+      deliveryDate: formatDate(orderConstants.bookingOrderGroup.deliveryDate),
+    },
+    serviceOrderGroup: {
+      ...orderConstants.serviceOrderGroup,
+      pickupDate: formatDate(orderConstants.serviceOrderGroup.pickupDate),
+      deliveryDate: formatDate(orderConstants.serviceOrderGroup.deliveryDate),
+    },
+  };
+  res.json(formatted);
 });
 
 router.put('/update-pickup-order', async (req, res) => {
