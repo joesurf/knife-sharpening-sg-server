@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getOrderConstants, getOrders, formatOrders, getOrderCountForGroup, getKnifeCountForGroup } from './notion_helper.js';
+import { getOrderConstants, getOrders, formatOrders, getOrderCountForGroup, getKnifeCountForGroup, isPickupTomorrow, isDeliveryTomorrow } from './notion_helper.js';
 
 export const sendMessageToTelegramNotifications = async (message: string) => {
   await axios
@@ -113,16 +113,28 @@ export const createOrderStatusMessage = async () => {
   const bookingKnifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber);
   const serviceOrderCount = await getOrderCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber);
   const serviceKnifeCount = await getKnifeCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber);
+  const pickupTomorrow = await isPickupTomorrow();
+  const deliveryTomorrow = await isDeliveryTomorrow();
 
-  return `📊 *Order Status*
+  const pickupIcon = pickupTomorrow ? '🟢' : '⚪';
+  const deliveryIcon = deliveryTomorrow ? '🟢' : '⚪';
+
+  return `📊 *Daily Order Status*
+━━━━━━━━━━━━━━━━━━
 
 📦 *Booking Group ${orderConstants.bookingOrderGroup.orderGroupNumber}*
-Orders: ${bookingOrderCount} | Knives: ${bookingKnifeCount}
-Pickup: ${orderConstants.bookingOrderGroup.pickupDate}
-Delivery: ${orderConstants.bookingOrderGroup.deliveryDate}
+├ Orders: ${bookingOrderCount}
+├ Knives: ${bookingKnifeCount}
+├ Pickup: ${orderConstants.bookingOrderGroup.pickupDate}
+└ Delivery: ${orderConstants.bookingOrderGroup.deliveryDate}
 
 🚚 *Service Group ${orderConstants.serviceOrderGroup.orderGroupNumber}*
-Orders: ${serviceOrderCount} | Knives: ${serviceKnifeCount}
-Pickup: ${orderConstants.serviceOrderGroup.pickupDate}
-Delivery: ${orderConstants.serviceOrderGroup.deliveryDate}`;
+├ Orders: ${serviceOrderCount}
+├ Knives: ${serviceKnifeCount}
+├ Pickup: ${orderConstants.serviceOrderGroup.pickupDate}
+└ Delivery: ${orderConstants.serviceOrderGroup.deliveryDate}
+
+━━━━━━━━━━━━━━━━━━
+${pickupIcon} Pickup Tomorrow: ${pickupTomorrow ? 'Yes' : 'No'}
+${deliveryIcon} Delivery Tomorrow: ${deliveryTomorrow ? 'Yes' : 'No'}`;
 };
