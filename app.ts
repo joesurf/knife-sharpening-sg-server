@@ -67,9 +67,9 @@ app.use('/notion', notionRouter);
 app.use('/analytics', analyticsRouter);
 
 cron.schedule(
-  '0 21 * * *',
+  '0 17 * * *',
   async () => {
-    console.log('[CRON] Running Order Constant Check at 9pm');
+    console.log('[CRON] Running Order Constant Check at 5pm');
     const message = await createOrderStatusMessage();
     await sendMessageToTelegramNotifications(message);
   },
@@ -110,19 +110,6 @@ cron.schedule(
   },
 );
 
-// cron.schedule(
-//   '30 18 * * 5',
-//   async () => {
-//     if (await isPickupTomorrow()) {
-//       console.log('[CRON] Running Friday Order Constants Update at 6.30pm');
-//       updateOrderConstantsToNextOrderGroup();
-//     }
-//   },
-//   {
-//     timezone: 'Asia/Singapore',
-//   },
-// );
-
 cron.schedule(
   '0 18 * * *',
   async () => {
@@ -149,17 +136,6 @@ cron.schedule(
     timezone: 'Asia/Singapore',
   },
 );
-
-// cron.schedule(
-//   '0 0 * * 1',
-//   async () => {
-//     console.log('[CRON] Running Monday Service Order Constants Update at Midnight');
-//     updateServiceOrderConstantsToNextOrderGroup();
-//   },
-//   {
-//     timezone: 'Asia/Singapore',
-//   },
-// );
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
