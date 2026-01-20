@@ -531,6 +531,13 @@ export const getOrderCountForGroup = async (orderGroup: number): Promise<number>
   return orders?.length ?? 0;
 };
 
+export const getKnifeCountForGroup = async (orderGroup: number): Promise<number> => {
+  const orders = await getOrders({ orderGroup, includeUrgent: true });
+  if (!orders) return 0;
+  const formattedOrders = formatOrders(orders);
+  return formattedOrders.reduce((total, order) => total + order.knives, 0);
+};
+
 async function getOrderStatusPageId(name: 'Booking' | 'Service'): Promise<string> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
