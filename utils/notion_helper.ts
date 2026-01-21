@@ -91,6 +91,29 @@ export const isDeliveryTomorrow = async () => {
   return tomorrow === deliveryDate;
 };
 
+export const isServiceEnded = async () => {
+  const orderConstants = await getOrderConstants();
+  const yesterday = format(addDays(new Date(), -1), 'yyyy-MM-dd');
+  const deliveryDate = format(orderConstants.serviceOrderGroup.deliveryDate, 'yyyy-MM-dd');
+
+  return yesterday === deliveryDate;
+};
+
+export const isBookingEnded = async () => {
+  const orderConstants = await getOrderConstants();
+  const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+  const pickupDate = format(orderConstants.bookingOrderGroup.pickupDate, 'yyyy-MM-dd');
+
+  return tomorrow === pickupDate;
+};
+
+export const isBookingFull = async () => {
+  const orderConstants = await getOrderConstants();
+  const knifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber);
+
+  return knifeCount > 50;
+};
+
 export const getNotionCustomerIdByPhone = async (customerPhone: string) => {
   try {
     const response = await notion.dataSources.query({

@@ -14,9 +14,11 @@ import {
   updateNotionCustomerAddress,
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
+  isBookingFull,
+  updateOrderConstantsToNextOrderGroup,
 } from '../utils/notion_helper.js';
 import { fetchBotspace } from '../utils/botspace_helper.js';
-import { createNewOrderNotificationMessage, sendMessageToTelegramNotifications } from '../utils/telegram_helper.js';
+import { createNewOrderNotificationMessage, createBookingOrderGroupUpdatedMessage, sendMessageToTelegramNotifications } from '../utils/telegram_helper.js';
 
 const router = express.Router();
 
@@ -150,6 +152,12 @@ router.post(
 
         const newOrderNotification = createNewOrderNotificationMessage(botspaceBody);
         await sendMessageToTelegramNotifications(newOrderNotification);
+
+        if (await isBookingFull()) {
+          await updateOrderConstantsToNextOrderGroup();
+          const updateMessage = await createBookingOrderGroupUpdatedMessage();
+          await sendMessageToTelegramNotifications(updateMessage);
+        }
 
         break;
 
