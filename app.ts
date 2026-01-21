@@ -21,12 +21,18 @@ import {
   sendRequestedReminder,
 } from './utils/botspace_helper.js';
 import {
+  isBookingEnded,
   isDeliveryTomorrow,
   isPickupTomorrow,
+  isServiceEnded,
+  updateOrderConstantsToNextOrderGroup,
+  updateServiceOrderConstantsToNextOrderGroup,
 } from './utils/notion_helper.js';
 import {
   createMessageFromOrders,
   createOrderStatusMessage,
+  createBookingOrderGroupUpdatedMessage,
+  createServiceOrderGroupUpdatedMessage,
   sendMessageToTelegramNotifications,
 } from './utils/telegram_helper.js';
 import { runStabilityTestOrderDetails } from './utils/stability_tests.js';
@@ -131,6 +137,36 @@ cron.schedule(
     );
     send180DayReminder();
     sendRequestedReminder();
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '30 18 * * *',
+  async () => {
+    console.log('[CRON] Running Booking Order Status Update at 6.30pm');
+    if (await isBookingEnded()) {
+      await updateOrderConstantsToNextOrderGroup();
+      const message = await createBookingOrderGroupUpdatedMessage();
+      await sendMessageToTelegramNotifications(message);
+    }
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '0 0 * * *',
+  async () => {
+    console.log('[CRON] Running Service Order Status Update at 12am');
+    if (await isServiceEnded()) {
+      await updateServiceOrderConstantsToNextOrderGroup();
+      const message = await createServiceOrderGroupUpdatedMessage();
+      await sendMessageToTelegramNotifications(message);
+    }
   },
   {
     timezone: 'Asia/Singapore',

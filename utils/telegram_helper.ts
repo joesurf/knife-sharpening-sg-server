@@ -138,3 +138,31 @@ export const createOrderStatusMessage = async () => {
 ${pickupIcon} Pickup Tomorrow: ${pickupTomorrow ? 'Yes' : 'No'}
 ${deliveryIcon} Delivery Tomorrow: ${deliveryTomorrow ? 'Yes' : 'No'}`;
 };
+
+export const createBookingOrderGroupUpdatedMessage = async () => {
+  const orderConstants = await getOrderConstants();
+  const booking = orderConstants.bookingOrderGroup;
+
+  return `📦 *Booking Order Group Updated*
+━━━━━━━━━━━━━━━━━━
+
+New booking group is now active:
+
+*Group ${booking.orderGroupNumber}*
+├ Pickup: ${booking.pickupDate}
+└ Delivery: ${booking.deliveryDate}`;
+};
+
+export const createServiceOrderGroupUpdatedMessage = async () => {
+  const orderConstants = await getOrderConstants();
+  const service = orderConstants.serviceOrderGroup;
+
+  return `🚚 *Service Order Group Updated*
+━━━━━━━━━━━━━━━━━━
+
+New service group is now active:
+
+*Group ${service.orderGroupNumber}*
+├ Pickup: ${service.pickupDate}
+└ Delivery: ${service.deliveryDate}`;
+};
