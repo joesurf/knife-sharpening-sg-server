@@ -159,9 +159,9 @@ cron.schedule(
 );
 
 cron.schedule(
-  '0 0 * * *',
+  '0 16 * * *',
   async () => {
-    console.log('[CRON] Running Service Order Status Update at 12am');
+    console.log('[CRON] Running Service Order Status Update at 4pm');
     if (await isServiceEnded()) {
       await updateServiceOrderConstantsToNextOrderGroup();
       const message = await createServiceOrderGroupUpdatedMessage();
