@@ -502,10 +502,11 @@ export const getOrderConstants = async (): Promise<OrderConstants> => {
 type GetOrdersParams = {
   orderGroup: number;
   driverId?: string;
+  sharpenerId?: string;
   includeUrgent?: boolean;
 };
 
-export const getOrders = async ({ orderGroup, driverId, includeUrgent = false }: GetOrdersParams) => {
+export const getOrders = async ({ orderGroup, driverId, sharpenerId, includeUrgent = false }: GetOrdersParams) => {
   try {
     type FilterUnion = NonNullable<QueryDataSourceParameters['filter']>;
     type AndArray = Extract<FilterUnion, { and: unknown }>['and'];
@@ -528,6 +529,19 @@ export const getOrders = async ({ orderGroup, driverId, includeUrgent = false }:
           any: {
             "rich_text": {
               "contains": driverId,
+            }
+          },
+        },
+      })
+    }
+
+    if (sharpenerId) {
+      filters.push({
+        property: 'Sharpener ID',
+        rollup: {
+          any: {
+            "rich_text": {
+              "contains": sharpenerId,
             }
           },
         },

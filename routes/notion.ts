@@ -1,10 +1,12 @@
 import express from 'express';
+import { type Request } from 'express';
 import {
   formatDate,
 } from '../utils/utils.js';
 import {
   getOrderConstants,
   updateNotionPagePickupOrder,
+  getOrders,
 } from '../utils/notion_helper.js';
 
 const router = express.Router();
@@ -30,8 +32,18 @@ router.get('/get-order-constants', async (req, res) => {
   res.json(formatted);
 });
 
-router.put('/update-pickup-order', async (req, res) => {
-  const pickupOrder = req.body.pickupOrder;
+type PickupOrder = {
+  pageId: string;
+  position: number;
+}
+
+type UpdatePickupOrderRequest = {
+  pickupOrder: PickupOrder[];
+}
+
+// eslint-disable-next-line
+router.put('/update-pickup-order', async (req: Request<{}, {}, UpdatePickupOrderRequest>, res) => {
+  const { pickupOrder } = req.body;
   await Promise.all(
     pickupOrder.map(order =>
       updateNotionPagePickupOrder(order.pageId, order.position)
@@ -39,5 +51,16 @@ router.put('/update-pickup-order', async (req, res) => {
   );
   res.json({ received: true });
 });
+
+router.get('/get-orders', async (req, res) => {
+  const { orderGroup, driverId, sharpenerId, includeUrgent = false } = req.query;
+  const orders = await getOrders({
+    orderGroup: Number(orderGroup),
+    driverId: driverId?.toString(),
+    sharpenerId: sharpenerId?.toString(),
+    includeUrgent: Boolean(includeUrgent),
+  });
+  res.json(orders);
+})
 
 export default router;
