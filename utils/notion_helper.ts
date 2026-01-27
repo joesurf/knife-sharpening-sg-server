@@ -225,6 +225,33 @@ export const updateNotionOrderCollected = async (orderId: string, check: boolean
   }
 };
 
+export const addImageToNotionOrder = async (orderId: string, imageUrl: string) => {
+  try {
+    const response = await notion.blocks.children.append({
+      block_id: orderId,
+      children: [
+        {
+          type: 'image',
+          image: {
+            type: 'external',
+            external: {
+              url: imageUrl,
+            },
+          },
+        },
+      ],
+    })
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 export const updateNotionOrderDelivered = async (orderId: string, check: boolean) => {
   try {
     const response = await notion.pages.update({
