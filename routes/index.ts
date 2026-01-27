@@ -3,7 +3,7 @@ import multer from 'multer';
 import { putToS3 } from '../utils/aws_helper.js'
 import { sendMessageToTelegramNotifications, createCollectionNotificationMessage, createDeliveryNotificationMessage } from '../utils/telegram_helper.js';
 import { sendCollectedMessage, sendDeliveredMessage } from '../utils/botspace_helper.js';
-import { getNotionPageIdByOrderNumber, updateNotionOrderCollected, updateNotionOrderDelivered } from '../utils/notion_helper.js';
+import { getNotionPageIdByOrderNumber, updateNotionOrderCollected, updateNotionOrderDelivered, updateNotionOrderSubmittedBeforePicture } from '../utils/notion_helper.js';
 
 const router = express.Router();
 
@@ -64,6 +64,33 @@ router.post('/delivery-picture', upload.single("image"), async (req, res) => {
     });
     sendMessageToTelegramNotifications(createDeliveryNotificationMessage(orderId, imageUrl));
     sendDeliveredMessage(orderId, imageUrl);
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    return res.json({
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Upload failed" });
+  }
+})
+
+router.post('/before-picture', upload.single("image"), async (req, res) => {
+  try {
+    const orderId = req.body.orderId;
+    const buffer = req.file?.buffer; // Buffer with file bytes
+    const mimetype = req.file?.mimetype;
+    await putToS3({ key: `orders/${orderId}/before/${req.file?.originalname}`, body: buffer, contentType: mimetype });
+
+    getNotionPageIdByOrderNumber(orderId).then((pageId) => {
+      if (!pageId) {
+        return res.status(400).json({ message: "No page ID found for order" });
+      }
+      updateNotionOrderSubmittedBeforePicture(pageId, true);
+    });
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });

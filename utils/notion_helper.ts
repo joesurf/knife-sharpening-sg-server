@@ -245,6 +245,26 @@ export const updateNotionOrderDelivered = async (orderId: string, check: boolean
 };
 
 
+export const updateNotionOrderSubmittedBeforePicture = async (orderId: string, check: boolean) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: orderId,
+      properties: {
+        'Submitted Before Picture': { checkbox: check },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
+
 export const updateNotionPagePickupOrder = async (pageId: string, pickupOrder: number) => {
   try {
     const response = await notion.pages.update({
