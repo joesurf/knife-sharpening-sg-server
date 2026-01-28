@@ -109,7 +109,7 @@ export const isBookingEnded = async () => {
 
 export const isBookingFull = async () => {
   const orderConstants = await getOrderConstants();
-  const knifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber);
+  const knifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber, false);
 
   return knifeCount > 50;
 };
@@ -610,13 +610,13 @@ export const getOrders = async ({ orderGroup, driverId, sharpenerId, includeUrge
   }
 };
 
-export const getOrderCountForGroup = async (orderGroup: number): Promise<number> => {
-  const orders = await getOrders({ orderGroup, includeUrgent: false });
+export const getOrderCountForGroup = async (orderGroup: number, includeUrgent: boolean = true): Promise<number> => {
+  const orders = await getOrders({ orderGroup, includeUrgent });
   return orders?.length ?? 0;
 };
 
-export const getKnifeCountForGroup = async (orderGroup: number): Promise<number> => {
-  const orders = await getOrders({ orderGroup, includeUrgent: false });
+export const getKnifeCountForGroup = async (orderGroup: number, includeUrgent: boolean = true): Promise<number> => {
+  const orders = await getOrders({ orderGroup, includeUrgent });
   if (!orders) return 0;
   const formattedOrders = formatOrders(orders);
   return formattedOrders.reduce((total, order) => total + order.knives, 0);
