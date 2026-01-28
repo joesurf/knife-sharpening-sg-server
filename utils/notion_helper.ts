@@ -611,12 +611,12 @@ export const getOrders = async ({ orderGroup, driverId, sharpenerId, includeUrge
 };
 
 export const getOrderCountForGroup = async (orderGroup: number): Promise<number> => {
-  const orders = await getOrders({ orderGroup, includeUrgent: true });
+  const orders = await getOrders({ orderGroup, includeUrgent: false });
   return orders?.length ?? 0;
 };
 
 export const getKnifeCountForGroup = async (orderGroup: number): Promise<number> => {
-  const orders = await getOrders({ orderGroup, includeUrgent: true });
+  const orders = await getOrders({ orderGroup, includeUrgent: false });
   if (!orders) return 0;
   const formattedOrders = formatOrders(orders);
   return formattedOrders.reduce((total, order) => total + order.knives, 0);
