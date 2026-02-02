@@ -54,6 +54,7 @@ const sendCollectionReminder = async () => {
       phone: order.whatsApp,
       timing: serviceGroup.timing,
       address: order.address,
+      note: order.note,
     };
     await fetchBotspace(BOTSPACE_COLLECTION_WEBHOOK_URL, orderBody);
   });
@@ -63,14 +64,14 @@ const sendDeliveryReminder = async () => {
   const orderConstants = await getOrderConstants();
   const serviceGroup = orderConstants.serviceOrderGroup;
   const orders = await getOrders({ orderGroup: serviceGroup.orderGroupNumber, includeUrgent: false });
-  orders.forEach(async (order) => {
+  const formattedOrders = formatOrders(orders);
+  formattedOrders.forEach(async (order) => {
     const orderBody = {
-      name: order.properties['Customer Name'].rollup.array[0].title[0]
-        .plain_text,
-      phone: order.properties[
-        'Customer Phone'
-      ].rollup.array[0].phone_number.replaceAll(' ', ''),
+      name: order.customerName,
+      phone: order.whatsApp,
       timing: serviceGroup.timing,
+      address: order.address,
+      note: order.note,
     };
     await fetchBotspace(BOTSPACE_DELIVERY_WEBHOOK_URL, orderBody);
   });
