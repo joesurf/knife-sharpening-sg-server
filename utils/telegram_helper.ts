@@ -109,10 +109,10 @@ ${orderId} has been delivered.
 
 export const createOrderStatusMessage = async () => {
   const orderConstants = await getOrderConstants();
-  const bookingOrderCount = await getOrderCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber);
-  const bookingKnifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber);
-  const serviceOrderCount = await getOrderCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber);
-  const serviceKnifeCount = await getKnifeCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber);
+  const bookingOrderCount = await getOrderCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber, false);
+  const bookingKnifeCount = await getKnifeCountForGroup(orderConstants.bookingOrderGroup.orderGroupNumber, false);
+  const serviceOrderCount = await getOrderCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber, false);
+  const serviceKnifeCount = await getKnifeCountForGroup(orderConstants.serviceOrderGroup.orderGroupNumber, false);
   const pickupTomorrow = await isPickupTomorrow();
   const deliveryTomorrow = await isDeliveryTomorrow();
 
