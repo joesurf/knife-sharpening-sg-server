@@ -472,7 +472,7 @@ export type OrderConstants = {
   serviceOrderGroup: OrderGroupDetails;
 };
 
-async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupId: string; orderGroupNumber: number }> {
+async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupId: string }> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
     filter: {
@@ -491,22 +491,18 @@ async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGr
   const relation = relationArray?.[0];
   if (!relation?.id) throw new Error(`No Order Group relation found for "${name}"`);
 
-  const orderGroupPage = await notion.pages.retrieve({ page_id: relation.id });
-  if (!('properties' in orderGroupPage)) throw new Error(`Could not retrieve Order Group page for "${name}"`);
+  return { orderGroupId: relation.id };
+}
 
-  const nameProp = orderGroupPage.properties['Name'];
+async function getOrderGroupDetails(orderGroupId: string): Promise<{ orderGroupNumber: number; pickupDate: string; deliveryDate: string; timing: string }> {
+  const page = await notion.pages.retrieve({ page_id: orderGroupId });
+  if (!('properties' in page)) throw new Error('Could not retrieve Order Group details');
+
+  const nameProp = page.properties['Name'];
   const orderGroupNumber = nameProp?.type === 'title'
     ? parseInt(nameProp.title?.[0]?.plain_text, 10)
     : NaN;
-
-  if (isNaN(orderGroupNumber)) throw new Error(`Invalid order group number for "${name}"`);
-
-  return { orderGroupId: relation.id, orderGroupNumber };
-}
-
-async function getOrderGroupDetails(orderGroupId: string): Promise<{ pickupDate: string; deliveryDate: string; timing: string }> {
-  const page = await notion.pages.retrieve({ page_id: orderGroupId });
-  if (!('properties' in page)) throw new Error('Could not retrieve Order Group details');
+  if (isNaN(orderGroupNumber)) throw new Error('Invalid order group number');
 
   const pickupDateProp = page.properties['Pickup Date'];
   const deliveryDateProp = page.properties['Delivery Date'];
@@ -520,7 +516,7 @@ async function getOrderGroupDetails(orderGroupId: string): Promise<{ pickupDate:
     throw new Error('Order Group missing required fields');
   }
 
-  return { pickupDate, deliveryDate, timing };
+  return { orderGroupNumber, pickupDate, deliveryDate, timing };
 }
 
 export const getOrderConstants = async (): Promise<OrderConstants> => {
@@ -535,14 +531,8 @@ export const getOrderConstants = async (): Promise<OrderConstants> => {
   ]);
 
   return {
-    bookingOrderGroup: {
-      orderGroupNumber: bookingStatus.orderGroupNumber,
-      ...bookingDetails,
-    },
-    serviceOrderGroup: {
-      orderGroupNumber: driverStatus.orderGroupNumber,
-      ...driverDetails,
-    },
+    bookingOrderGroup: bookingDetails,
+    serviceOrderGroup: driverDetails,
   };
 };
 
