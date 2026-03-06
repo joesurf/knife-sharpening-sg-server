@@ -84,9 +84,10 @@ router.post(
         const orderKnives = orderData?.knives || '0';
         const orderRepairs = orderData?.repairs || '0';
         const orderCustom = orderData?.custom || '0';
+        const orderGroup = orderData?.orderGroup || '0';
         const orderTotal = eventData?.amount_total / 100;
         const orderConstants = await getOrderConstants();
-        const bookingGroup = orderConstants.bookingOrderGroup;
+        const bookingGroup = orderConstants.bookingOrderGroupArray.find(group => group.orderGroupNumber === Number(orderGroup)) || orderConstants.bookingOrderGroup;
         const currentOrderCount = await getOrderCountForGroup(bookingGroup.orderGroupNumber);
         const formattedPickupDate = formatDate(bookingGroup.pickupDate);
         const formattedDeliveryDate = formatDate(bookingGroup.deliveryDate);
