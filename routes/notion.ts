@@ -23,6 +23,11 @@ router.get('/get-order-constants', async (req, res) => {
       pickupDate: formatDate(orderConstants.bookingOrderGroup.pickupDate),
       deliveryDate: formatDate(orderConstants.bookingOrderGroup.deliveryDate),
     },
+    bookingOrderGroupArray: orderConstants.bookingOrderGroupArray.map(orderGroup => ({
+      ...orderGroup,
+      pickupDate: formatDate(orderGroup.pickupDate),
+      deliveryDate: formatDate(orderGroup.deliveryDate),
+    })),
     serviceOrderGroup: {
       ...orderConstants.serviceOrderGroup,
       pickupDate: formatDate(orderConstants.serviceOrderGroup.pickupDate),

@@ -469,10 +469,11 @@ export type OrderGroupDetails = {
 
 export type OrderConstants = {
   bookingOrderGroup: OrderGroupDetails;
+  bookingOrderGroupArray: OrderGroupDetails[];
   serviceOrderGroup: OrderGroupDetails;
 };
 
-async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupId: string }> {
+async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupIds: string[] }> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
     filter: {
@@ -488,10 +489,9 @@ async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGr
   if (relationProp?.type !== 'relation') throw new Error(`Order Group is not a relation for "${name}"`);
 
   const relationArray = relationProp.relation as { id: string }[];
-  const relation = relationArray?.[0];
-  if (!relation?.id) throw new Error(`No Order Group relation found for "${name}"`);
+  if (!relationArray?.length) throw new Error(`No Order Group relation found for "${name}"`);
 
-  return { orderGroupId: relation.id };
+  return { orderGroupIds: relationArray.map(r => r.id) };
 }
 
 async function getOrderGroupDetails(orderGroupId: string): Promise<{ orderGroupNumber: number; pickupDate: string; deliveryDate: string; timing: string }> {
@@ -525,13 +525,14 @@ export const getOrderConstants = async (): Promise<OrderConstants> => {
     getOrderStatusRow('Service'),
   ]);
 
-  const [bookingDetails, driverDetails] = await Promise.all([
-    getOrderGroupDetails(bookingStatus.orderGroupId),
-    getOrderGroupDetails(driverStatus.orderGroupId),
+  const [bookingDetailsArray, driverDetails] = await Promise.all([
+    Promise.all(bookingStatus.orderGroupIds.map(id => getOrderGroupDetails(id))),
+    getOrderGroupDetails(driverStatus.orderGroupIds[0]),
   ]);
 
   return {
-    bookingOrderGroup: bookingDetails,
+    bookingOrderGroup: bookingDetailsArray[0],
+    bookingOrderGroupArray: bookingDetailsArray,
     serviceOrderGroup: driverDetails,
   };
 };
