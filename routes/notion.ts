@@ -83,7 +83,7 @@ router.post('/create-prospect', async (req, res) => {
     return res.status(400).json({ message: 'name and phone are required' });
   }
 
-  const phoneStr = phone.toString();
+  const phoneStr = phone.toString().replaceAll(' ', '');
 
   const existingCustomerId = await getNotionCustomerIdByPhone(phoneStr);
   if (existingCustomerId) {
