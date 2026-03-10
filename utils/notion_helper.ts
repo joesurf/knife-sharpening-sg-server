@@ -160,6 +160,25 @@ export const updateNotionCustomerName = async (customerId: string, name: string)
   }
 };
 
+export const updateNotionProspectToCustomer = async (customerId: string) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: customerId,
+      properties: {
+        Status: { select: { name: 'Customer' } },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 export const updateNotionCustomerAddress = async (customerId: string, address: string) => {
   try {
     const response = await notion.pages.update({

@@ -13,6 +13,7 @@ import {
   getNotionCustomerIdByPhone,
   updateNotionCustomerAddress,
   updateNotionCustomerName,
+  updateNotionProspectToCustomer,
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
 } from '../utils/notion_helper.js';
@@ -123,6 +124,7 @@ router.post(
         let customerId = await getNotionCustomerIdByPhone(customerPhone);
 
         if (customerId) {
+          await updateNotionProspectToCustomer(customerId);
           await updateNotionCustomerAddress(customerId, customerBody.address);
           await updateNotionCustomerName(customerId, customerBody.name);
           await updateNotionCustomer180DayFollowUp(customerId, false);
