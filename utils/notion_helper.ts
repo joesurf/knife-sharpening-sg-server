@@ -141,6 +141,25 @@ export const getNotionCustomerIdByPhone = async (customerPhone: string) => {
   }
 };
 
+export const updateNotionCustomerName = async (customerId: string, name: string) => {
+  try {
+    const response = await notion.pages.update({
+      page_id: customerId,
+      properties: {
+        Name: { title: [{ text: { content: name } }] },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 export const updateNotionCustomerAddress = async (customerId: string, address: string) => {
   try {
     const response = await notion.pages.update({
@@ -317,6 +336,36 @@ type Customer = {
   address: string;
 };
 
+export const insertNotionProspect = async (prospect: { name: string; phone: string }) => {
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        data_source_id: CUSTOMERS_DATASOURCE_ID,
+      },
+      properties: {
+        Name: {
+          title: [{ text: { content: prospect.name } }],
+        },
+        Phone: {
+          phone_number: prospect.phone,
+        },
+        Status: {
+          select: {
+            name: 'Prospect',
+          },
+        },
+      },
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 export const insertNotionCustomer = async (customer: Customer) => {
   try {
     const response = await notion.pages.create({
@@ -340,7 +389,7 @@ export const insertNotionCustomer = async (customer: Customer) => {
           rich_text: [
             {
               text: {
-                content: customer.address,
+                content: customer.address ?? '',
               },
             },
           ],

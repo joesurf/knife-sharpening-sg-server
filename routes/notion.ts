@@ -7,6 +7,7 @@ import {
   getOrderConstants,
   updateNotionPagePickupOrder,
   getOrders,
+  insertNotionProspect,
 } from '../utils/notion_helper.js';
 
 const router = express.Router();
@@ -73,5 +74,20 @@ router.get('/get-orders', async (req, res) => {
   });
   res.json(orders);
 })
+
+router.post('/create-prospect', async (req, res) => {
+  const { name, phone } = req.query;
+
+  if (!name || !phone) {
+    return res.status(400).json({ message: 'name and phone are required' });
+  }
+
+  const prospectBody = {
+    name: name.toString(),
+    phone: phone.toString(),
+  };
+  const prospect = await insertNotionProspect(prospectBody);
+  res.json(prospect);
+});
 
 export default router;
