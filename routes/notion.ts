@@ -8,6 +8,7 @@ import {
   updateNotionPagePickupOrder,
   getOrders,
   insertNotionProspect,
+  getNotionCustomerIdByPhone,
 } from '../utils/notion_helper.js';
 
 const router = express.Router();
@@ -82,11 +83,14 @@ router.post('/create-prospect', async (req, res) => {
     return res.status(400).json({ message: 'name and phone are required' });
   }
 
-  const prospectBody = {
-    name: name.toString(),
-    phone: phone.toString(),
-  };
-  const prospect = await insertNotionProspect(prospectBody);
+  const phoneStr = phone.toString();
+
+  const existingCustomerId = await getNotionCustomerIdByPhone(phoneStr);
+  if (existingCustomerId) {
+    return res.status(409).json({ message: 'Customer with this phone already exists' });
+  }
+
+  const prospect = await insertNotionProspect({ name: name.toString(), phone: phoneStr });
   res.json(prospect);
 });
 
