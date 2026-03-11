@@ -11,12 +11,6 @@ import {
 const BOTSPACE_REMINDER_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68eff0c8bf1d5ae40860a005';
 
-const BOTSPACE_COLLECTED_WEBHOOK_URL =
-  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/693a92b06b270d7d55c66f9d';
-
-const BOTSPACE_DELIVERED_WEBHOOK_URL =
-  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/69400ec469cb724b1ac191ad';
-
 const fetchBotspace = (url, body) => {
   return fetch(url, {
     method: 'POST',
@@ -113,8 +107,9 @@ const sendCollectedMessage = async (orderId, imageUrl) => {
         'Customer Phone'
       ].rollup.array[0].phone_number.replaceAll(' ', ''),
       imageUrl: imageUrl,
+      reminderType: 'collected'
     }
-    fetchBotspace(BOTSPACE_COLLECTED_WEBHOOK_URL, customerBody);
+    fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, customerBody);
   } else {
     console.log(`Unable to find customer with order ID ${orderId}`);
   }
@@ -135,8 +130,9 @@ const sendDeliveredMessage = async (orderId, imageUrl) => {
         'Customer Phone'
       ].rollup.array[0].phone_number.replaceAll(' ', ''),
       imageUrl: imageUrl,
+      reminderType: 'delivered'
     }
-    fetchBotspace(BOTSPACE_DELIVERED_WEBHOOK_URL, customerBody);
+    fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, customerBody);
   } else {
     console.log(`Unable to find customer with order ID ${orderId}`);
   }
