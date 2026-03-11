@@ -14,9 +14,6 @@ const BOTSPACE_COLLECTION_WEBHOOK_URL =
 const BOTSPACE_DELIVERY_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ecb2d0f881d90a0ce76bcc';
 
-const BOTSPACE_180DAY_WEBHOOK_URL =
-  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ef568abf1d5ae4083e5a36';
-
 const BOTSPACE_REMINDER_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68eff0c8bf1d5ae40860a005';
 
@@ -84,8 +81,9 @@ const send180DayReminder = async () => {
       id: customer.id,
       name: customer.properties['Name'].title[0].plain_text,
       phone: customer.properties['Phone'].phone_number.replaceAll(' ', ''),
+      reminderType: 'oneeighty',
     }
-    await fetchBotspace(BOTSPACE_180DAY_WEBHOOK_URL, customerBody);
+    await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, customerBody);
     await updateNotionCustomer180DayFollowUp(customerBody.id, true);
   })
 };
@@ -97,6 +95,7 @@ const sendRequestedReminder = async () => {
       id: customer.id,
       name: customer.properties['Name'].title[0].plain_text,
       phone: customer.properties['Phone'].phone_number.replaceAll(' ', ''),
+      reminderType: 'request',
     }
     await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, customerBody);
     await clearNotionCustomerReminderDate(customerBody.id);
