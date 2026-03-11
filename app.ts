@@ -19,6 +19,7 @@ import {
   sendCollectionReminder,
   sendDeliveryReminder,
   sendRequestedReminder,
+  sendProspectReminder,
 } from './utils/botspace_helper.js';
 import {
   isBookingEnded,
@@ -133,10 +134,23 @@ cron.schedule(
   '0 20 * * 3',
   async () => {
     console.log(
-      '[CRON] Running Wednesday 180 Day and Requested Reminder at 8pm',
+      '[CRON] Running Wednesday 180 Day, Requested at 8pm',
     );
     send180DayReminder();
     sendRequestedReminder();
+  },
+  {
+    timezone: 'Asia/Singapore',
+  },
+);
+
+cron.schedule(
+  '0 20 * * 4',
+  async () => {
+    console.log(
+      '[CRON] Running Thursday at 8pm',
+    );
+    sendProspectReminder();
   },
   {
     timezone: 'Asia/Singapore',

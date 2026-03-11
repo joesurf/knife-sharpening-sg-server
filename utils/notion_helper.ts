@@ -833,6 +833,40 @@ export const getCustomersWithReminderDates = async () => {
   }
 };
 
+export const getProspectsCreatedThisWeek = async () => {
+  try {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const response = await notion.dataSources.query({
+      data_source_id: CUSTOMERS_DATASOURCE_ID,
+      filter: {
+        and: [
+          {
+            property: 'Status',
+            select: { equals: 'Prospect' },
+          },
+          {
+            timestamp: 'created_time',
+            created_time: { on_or_after: startOfWeek.toISOString() },
+          },
+        ],
+      },
+      page_size: 100,
+    });
+
+    return response.results;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('An error occurred:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  }
+};
+
 export const clearNotionCustomerReminderDate = async (customerId: string) => {
   try {
     const response = await notion.pages.update({

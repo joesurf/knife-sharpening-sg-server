@@ -5,6 +5,7 @@ import {
   updateNotionCustomer180DayFollowUp,
   clearNotionCustomerReminderDate,
   getCustomersWithReminderDates,
+  getProspectsCreatedThisWeek,
   formatOrders,
 } from './notion_helper.js';
 
@@ -92,6 +93,19 @@ const sendRequestedReminder = async () => {
   })
 };
 
+const sendProspectReminder = async () => {
+  const prospects = await getProspectsCreatedThisWeek();
+  prospects.forEach(async (prospect) => {
+    const prospectBody = {
+      id: prospect.id,
+      name: prospect.properties['Name'].title[0].plain_text,
+      phone: prospect.properties['Phone'].phone_number.replaceAll(' ', ''),
+      reminderType: 'followup',
+    };
+    await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, prospectBody);
+  });
+};
+
 const sendCollectedMessage = async (orderId, imageUrl) => {
   const orderConstants = await getOrderConstants();
   const orders = await getOrders({ orderGroup: orderConstants.serviceOrderGroup.orderGroupNumber, includeUrgent: false });
@@ -144,6 +158,7 @@ export {
   sendDeliveryReminder,
   send180DayReminder,
   sendRequestedReminder,
+  sendProspectReminder,
   sendCollectedMessage,
   sendDeliveredMessage,
 };
