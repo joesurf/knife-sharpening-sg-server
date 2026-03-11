@@ -8,12 +8,6 @@ import {
   formatOrders,
 } from './notion_helper.js';
 
-const BOTSPACE_COLLECTION_WEBHOOK_URL =
-  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68e8a0a0f881d90a0c73f941';
-
-const BOTSPACE_DELIVERY_WEBHOOK_URL =
-  'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68ecb2d0f881d90a0ce76bcc';
-
 const BOTSPACE_REMINDER_WEBHOOK_URL =
   'https://hook.bot.space/ZHVAL4hD99ef/v1/webhook/automation/68da50444ce0c3f496978e79/flow/68eff0c8bf1d5ae40860a005';
 
@@ -52,8 +46,9 @@ const sendCollectionReminder = async () => {
       timing: serviceGroup.timing,
       address: order.address,
       note: order.note,
+      reminderType: 'collection',
     };
-    await fetchBotspace(BOTSPACE_COLLECTION_WEBHOOK_URL, orderBody);
+    await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, orderBody);
   });
 };
 
@@ -69,8 +64,9 @@ const sendDeliveryReminder = async () => {
       timing: serviceGroup.timing,
       address: order.address,
       note: order.note,
+      reminderType: 'delivery',
     };
-    await fetchBotspace(BOTSPACE_DELIVERY_WEBHOOK_URL, orderBody);
+    await fetchBotspace(BOTSPACE_REMINDER_WEBHOOK_URL, orderBody);
   });
 };
 
