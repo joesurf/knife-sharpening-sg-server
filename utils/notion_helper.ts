@@ -582,14 +582,23 @@ async function getOrderStatusRows(): Promise<{ booking: OrderGroupDetails[]; ser
   return { booking: getDetailsForName('Booking'), service: getDetailsForName('Service') };
 }
 
-export const getOrderConstants = async (): Promise<OrderConstants> => {
-  const { booking: bookingDetailsArray, service: serviceDetailsArray } = await getOrderStatusRows();
+let orderConstantsCache: { value: OrderConstants; expiresAt: number } | null = null;
+const ORDER_CONSTANTS_CACHE_TTL_MS = 60_000;
 
-  return {
+export const invalidateOrderConstantsCache = () => { orderConstantsCache = null; };
+
+export const getOrderConstants = async (): Promise<OrderConstants> => {
+  const now = Date.now();
+  if (orderConstantsCache && now < orderConstantsCache.expiresAt) return orderConstantsCache.value;
+
+  const { booking: bookingDetailsArray, service: serviceDetailsArray } = await getOrderStatusRows();
+  const value = {
     bookingOrderGroup: bookingDetailsArray[0],
     bookingOrderGroupArray: bookingDetailsArray,
     serviceOrderGroup: serviceDetailsArray[0],
   };
+  orderConstantsCache = { value, expiresAt: now + ORDER_CONSTANTS_CACHE_TTL_MS };
+  return value;
 };
 
 type GetOrdersParams = {
