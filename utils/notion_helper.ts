@@ -16,7 +16,8 @@ type NotionProperty =
   PageObjectResponse["properties"][string];
 
 export function getTextFromNotionProperty(
-  property: NotionProperty
+  property: NotionProperty,
+  index = 0
 ): string | undefined {
   const propertyType = property.type;
 
@@ -46,7 +47,7 @@ export function getTextFromNotionProperty(
     const rollup = property.rollup;
 
     if (rollup.type === "array" && rollup.array.length > 0) {
-      const item = rollup.array[0];
+      const item = rollup.array[index];
 
       if (item.type === "title") {
         return item.title[0]?.plain_text;
@@ -541,67 +542,53 @@ export type OrderConstants = {
   serviceOrderGroup: OrderGroupDetails;
 };
 
-async function getOrderStatusRow(name: 'Booking' | 'Service'): Promise<{ orderGroupIds: string[] }> {
+async function getOrderStatusRows(): Promise<{ booking: OrderGroupDetails[]; service: OrderGroupDetails[] }> {
   const response = await notion.dataSources.query({
     data_source_id: ORDER_STATUS_DATASOURCE_ID,
-    filter: {
-      property: 'Name',
-      title: { equals: name },
-    },
   });
 
-  const row = response?.results?.[0];
-  if (!row || !('properties' in row)) throw new Error(`No "${name}" row found in Order Status`);
+  const getDetailsForName = (name: 'Booking' | 'Service'): OrderGroupDetails[] => {
 
-  const relationProp = row.properties['Order Group'];
-  if (relationProp?.type !== 'relation') throw new Error(`Order Group is not a relation for "${name}"`);
+    // Type checking
+    const row = response?.results?.find(r => {
+      if (!('properties' in r)) return false;
+      const nameProp = r.properties['Name'];
+      return nameProp?.type === 'title' && Array.isArray(nameProp.title) && nameProp.title[0]?.plain_text === name;
+    });
+    if (!row || !('properties' in row)) throw new Error(`No "${name}" row found in Order Status`);
+    const relationProp = row.properties['Order Group'];
+    if (relationProp?.type !== 'relation') throw new Error(`Order Group is not a relation for "${name}"`);
 
-  const relationArray = relationProp.relation as { id: string }[];
-  if (!relationArray?.length) throw new Error(`No Order Group relation found for "${name}"`);
+    // Informs how many order groups are in the relation
+    const count = (relationProp.relation as { id: string }[]).length;
+    if (!count) throw new Error(`No Order Group relation found for "${name}"`);
 
-  return { orderGroupIds: relationArray.map(r => r.id) };
-}
+    // Extracts the properties for each order group
+    const props = row.properties as PageObjectResponse['properties'];
+    return Array.from({ length: count }, (_, i) => {
+      const orderGroupNumber = parseInt(getTextFromNotionProperty(props['Order Group Name'], i) ?? '', 10);
+      const pickupDate = getTextFromNotionProperty(props['Pickup Date'], i);
+      const deliveryDate = getTextFromNotionProperty(props['Delivery Date'], i);
+      const timing = getTextFromNotionProperty(props['Timing'], i);
 
-async function getOrderGroupDetails(orderGroupId: string): Promise<{ orderGroupNumber: number; pickupDate: string; deliveryDate: string; timing: string }> {
-  const page = await notion.pages.retrieve({ page_id: orderGroupId });
-  if (!('properties' in page)) throw new Error('Could not retrieve Order Group details');
+      if (isNaN(orderGroupNumber) || !pickupDate || !deliveryDate || typeof timing !== 'string') {
+        throw new Error(`Order Group at index ${i} missing required fields for "${name}"`);
+      }
 
-  const nameProp = page.properties['Name'];
-  const orderGroupNumber = nameProp?.type === 'title'
-    ? parseInt(nameProp.title?.[0]?.plain_text, 10)
-    : NaN;
-  if (isNaN(orderGroupNumber)) throw new Error('Invalid order group number');
+      return { orderGroupNumber, pickupDate, deliveryDate, timing };
+    });
+  };
 
-  const pickupDateProp = page.properties['Pickup Date'];
-  const deliveryDateProp = page.properties['Delivery Date'];
-  const timingProp = page.properties['Timing'];
-
-  const pickupDate = pickupDateProp?.type === 'date' ? pickupDateProp.date?.start : undefined;
-  const deliveryDate = deliveryDateProp?.type === 'date' ? deliveryDateProp.date?.start : undefined;
-  const timing = timingProp?.type === 'rich_text' ? timingProp.rich_text?.[0]?.plain_text : undefined;
-
-  if (!pickupDate || !deliveryDate || typeof timing !== 'string') {
-    throw new Error('Order Group missing required fields');
-  }
-
-  return { orderGroupNumber, pickupDate, deliveryDate, timing };
+  return { booking: getDetailsForName('Booking'), service: getDetailsForName('Service') };
 }
 
 export const getOrderConstants = async (): Promise<OrderConstants> => {
-  const [bookingStatus, driverStatus] = await Promise.all([
-    getOrderStatusRow('Booking'),
-    getOrderStatusRow('Service'),
-  ]);
-
-  const [bookingDetailsArray, driverDetails] = await Promise.all([
-    Promise.all(bookingStatus.orderGroupIds.map(id => getOrderGroupDetails(id))),
-    getOrderGroupDetails(driverStatus.orderGroupIds[0]),
-  ]);
+  const { booking: bookingDetailsArray, service: serviceDetailsArray } = await getOrderStatusRows();
 
   return {
     bookingOrderGroup: bookingDetailsArray[0],
     bookingOrderGroupArray: bookingDetailsArray,
-    serviceOrderGroup: driverDetails,
+    serviceOrderGroup: serviceDetailsArray[0],
   };
 };
 
