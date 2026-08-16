@@ -1,0 +1,40 @@
+name: Deploy to Droplet
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Droplet
+      env:
+        PRIVATE_KEY: ${{ secrets.DROPLET_PRIVATE_KEY }}
+        HOST: ${{ secrets.DROPLET_HOST }}
+        USER: ${{ secrets.DROPLET_USER }}
+      run: |
+        echo "Deploying to Droplet..."
+        echo "$PRIVATE_KEY" > github-deploy.pem && chmod 600 github-deploy.pem
+        ssh -o StrictHostKeyChecking=no -i github-deploy.pem ${USER}@${HOST} '
+        set -e
+        echo "Pulling from main..."
+        cd ~/knife-cron
+        git pull origin main
+
+        echo "Installing dependencies..."
+        npm install
+
+        echo "Building..."
+        npm run build
+
+        echo "Restarting service..."
+        sudo systemctl restart knife-cron.service
+
+        echo "Verifying service..."
+        sleep 2
+        sudo systemctl is-active knife-cron.service
+        curl -s http://localhost:8080/
+        '
